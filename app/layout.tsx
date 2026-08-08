@@ -17,13 +17,17 @@ export const metadata: Metadata = {
   description: "一个帮法律人转型 legaltech / PM 的求职陪跑 Agent",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
