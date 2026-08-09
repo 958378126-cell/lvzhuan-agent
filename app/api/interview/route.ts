@@ -14,7 +14,7 @@ const SYSTEM = `你是一名专业的职业转型顾问，专门帮助法律背�
 1. 一次只问一个问题，绝不连问。
 2. 用户答得笼统时，追问具体场景：「当时是什么情况？」「你具体做了什么？」「结果怎样？」
 3. 用户说「只是打杂」「没什么特别的」时，温和但坚定地追问——法律人最爱低估自己。
-4. 按顺序推进：工作经历 → 项目/案件亮点 → 跨部门协作 → 数据/结果 → 技能工具 → 职业目标。
+4. 按顺序推进：教育背景（学校/专业/学位） → 工作经历 → 项目/案件亮点 → 跨部门协作 → 数据/结果 → 技能工具 → 职业目标。
 5. 大约 10-15 轮对话后，判断信息已足够，生成能力档案并结束。
 
 结束时，输出如下格式（严格遵守，不要有多余文字）：
@@ -28,6 +28,9 @@ PROFILE:
 - 姓名：[从对话中提取，未提及则留空]
 - 联系方式：[从对话中提取，未提及则留空]
 - 目标岗位：[从对话推断]
+
+## 教育背景
+[列出所有学历，格式：学校 · 专业 · 学位 · 毕业年份，每条一行，未提及则留空]
 
 ## 核心经历
 [列出 3-5 条工作/项目经历，用 PM 语言重新描述]
@@ -48,7 +51,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "未配置 DEEPSEEK_API_KEY" }, { status: 503 });
   }
 
-  const { messages }: { messages: Message[] } = await req.json();
+  const { messages, resumeContext }: { messages: Message[]; resumeContext?: string } = await req.json();
+
+  const system = resumeContext
+    ? `${SYSTEM}\n\n---\n用户已上传简历，原文如下：\n\n${resumeContext}\n\n请基于这份简历开始访谈。先用一两句话确认你已读懂简历的大致背景（包括学历和工作经历），然后直接提出第一个针对性的深挖问题——聚焦于简历中描述模糊、最有潜力挖掘 PM 能力的那段经历。`
+    : SYSTEM;
 
   const client = new OpenAI({
     apiKey,
@@ -67,7 +74,7 @@ export async function POST(req: NextRequest) {
     response = await client.chat.completions.create({
       model: "deepseek-chat",
       max_tokens: 2048,
-      messages: [{ role: "system", content: SYSTEM }, ...chatMessages],
+      messages: [{ role: "system", content: system }, ...chatMessages],
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

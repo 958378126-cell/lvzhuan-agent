@@ -108,6 +108,7 @@ function buildResumeHTML(data: ResumeData): string {
 
 const systemPrompt = `你是一名专业的简历撰写顾问，擅长帮助法律背景人士转型 legaltech / PM 岗位。
 你的任务是根据用户的能力档案和目标 JD，生成一份结构化的简历数据（JSON 格式）。
+如果提供了"修改指令"和"当前简历"，则在当前简历基础上按指令调整，保留未涉及的部分不变。
 
 严格规则：
 1. 只使用用户档案中真实存在的经历和能力，绝不杜撰。
@@ -147,7 +148,7 @@ const systemPrompt = `你是一名专业的简历撰写顾问，擅长帮助法�
 }`;
 
 export async function POST(req: NextRequest) {
-  const { jd, profile } = await req.json();
+  const { jd, profile, instruction, previousResume } = await req.json();
 
   if (!jd?.trim() || !profile?.trim()) {
     return NextResponse.json({ error: "缺少 jd 或 profile" }, { status: 400 });
@@ -172,7 +173,9 @@ export async function POST(req: NextRequest) {
         { role: "system", content: systemPrompt },
         {
           role: "user",
-          content: `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n请生成简历 JSON。`,
+          content: instruction && previousResume
+            ? `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n当前简历 JSON：\n${JSON.stringify(previousResume)}\n\n修改指令：${instruction}\n\n请按指令调整并输出完整简历 JSON。`
+            : `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n请生成简历 JSON。`,
         },
       ],
     });
@@ -196,5 +199,5 @@ export async function POST(req: NextRequest) {
   }
 
   const html = buildResumeHTML(data);
-  return NextResponse.json({ html });
+  return NextResponse.json({ html, resumeData: data });
 }

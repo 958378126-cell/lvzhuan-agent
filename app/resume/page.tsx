@@ -12,25 +12,59 @@ export default function ResumePage() {
   );
   const [loading, setLoading] = useState(false);
   const [html, setHtml] = useState("");
+  const [resumeData, setResumeData] = useState<unknown>(null);
+  const [instruction, setInstruction] = useState("");
   const [error, setError] = useState("");
 
-  async function generate() {
+  const [exporting, setExporting] = useState(false);
+
+  async function exportDocx() {
+    if (!html) return;
+    setExporting(true);
+    try {
+      const res = await fetch("/api/export-docx", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html, name: "律转简历" }),
+      });
+      if (!res.ok) throw new Error("导出失败");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "律转简历.docx";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "导出失败，请重试");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function generate(withInstruction = false) {
     if (!jd.trim() || !profile.trim()) {
       setError("请填写能力档案和目标 JD");
       return;
     }
     setError("");
     setLoading(true);
-    setHtml("");
     try {
+      const body: Record<string, unknown> = { jd, profile };
+      if (withInstruction && instruction.trim() && resumeData) {
+        body.instruction = instruction.trim();
+        body.previousResume = resumeData;
+      }
       const res = await fetch("/api/generate-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd, profile }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "生成失败");
       setHtml(data.html);
+      setResumeData(data.resumeData);
+      setInstruction("");
       localStorage.setItem(PROFILE_KEY, profile);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "生成失败，请重试");
@@ -50,7 +84,6 @@ export default function ResumePage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-      {/* Nav */}
       <nav
         className="flex items-center justify-between px-10 py-5"
         style={{ backgroundColor: "#1a2744" }}
@@ -64,7 +97,6 @@ export default function ResumePage() {
       <div className="flex flex-1 gap-6 p-8 max-w-7xl mx-auto w-full">
         {/* Left: inputs */}
         <div className="flex flex-col gap-6 w-96 flex-none">
-          {/* Profile */}
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
@@ -77,14 +109,13 @@ export default function ResumePage() {
             </p>
             <textarea
               className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
-              rows={10}
+              rows={9}
               placeholder="粘贴你的能力档案…"
               value={profile}
               onChange={(e) => setProfile(e.target.value)}
             />
           </div>
 
-          {/* JD */}
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
@@ -97,24 +128,22 @@ export default function ResumePage() {
             </p>
             <textarea
               className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
-              rows={10}
+              rows={9}
               placeholder="粘贴 JD 全文…"
               value={jd}
               onChange={(e) => setJd(e.target.value)}
             />
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm px-1">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm px-1">{error}</p>}
 
           <button
-            onClick={generate}
+            onClick={() => generate(false)}
             disabled={loading}
             className="w-full h-12 rounded-xl text-white text-sm font-semibold transition-opacity disabled:opacity-60"
             style={{ backgroundColor: "#1a2744" }}
           >
-            {loading ? "生成中…" : "生成定制简历 →"}
+            {loading && !resumeData ? "生成中…" : "生成定制简历 →"}
           </button>
         </div>
 
@@ -136,13 +165,53 @@ export default function ResumePage() {
                 >
                   打印 / 存为 PDF
                 </button>
+                <button
+                  onClick={exportDocx}
+                  disabled={exporting}
+                  className="text-sm font-semibold px-5 py-2 rounded-lg border transition-colors disabled:opacity-50"
+                  style={{ borderColor: "#1a2744", color: "#1a2744" }}
+                >
+                  {exporting ? "导出中…" : "导出 Word"}
+                </button>
               </div>
+
               <div className="flex-1 rounded-2xl overflow-hidden shadow-sm bg-white">
                 <iframe
                   srcDoc={html}
-                  className="w-full h-full min-h-[800px]"
+                  className="w-full h-full min-h-[700px]"
                   title="简历预览"
                 />
+              </div>
+
+              {/* Iterative edit */}
+              <div className="rounded-2xl bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
+                  <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>
+                    按要求修改
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mb-3 leading-5">
+                  告诉 Agent 怎么调整这份简历，它会在原稿基础上修改，不会重新生成。
+                </p>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 transition-colors"
+                    placeholder="例：突出法律科技经验 / 针对字节 PM 岗改一版 / 把 summary 改得更有冲劲"
+                    value={instruction}
+                    onChange={(e) => setInstruction(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !loading && generate(true)}
+                  />
+                  <button
+                    onClick={() => generate(true)}
+                    disabled={loading || !instruction.trim()}
+                    className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity disabled:opacity-40"
+                    style={{ backgroundColor: "#1a2744" }}
+                  >
+                    {loading ? "修改中…" : "修改 →"}
+                  </button>
+                </div>
               </div>
             </>
           ) : (
@@ -160,6 +229,7 @@ export default function ResumePage() {
               <p className="text-blue-200 text-sm leading-7 max-w-xs">
                 Agent 会从你的档案里挑出与这条 JD 最匹配的经历，
                 用招聘方听得懂的语言重新包装，生成一份可直接投递的简历。
+                生成后可以用自然语言继续调整。
               </p>
             </div>
           )}
