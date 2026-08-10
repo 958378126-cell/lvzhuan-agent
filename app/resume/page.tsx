@@ -6,6 +6,16 @@ import Link from "next/link";
 const PROFILE_KEY = "lvzhuan_profile";
 
 export default function ResumePage() {
+  const [photo, setPhoto] = useState<string>("");
+
+  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
   const [jd, setJd] = useState("");
   const [profile, setProfile] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem(PROFILE_KEY) ?? "" : ""
@@ -50,7 +60,7 @@ export default function ResumePage() {
     setError("");
     setLoading(true);
     try {
-      const body: Record<string, unknown> = { jd, profile };
+      const body: Record<string, unknown> = { jd, profile, photo: photo || undefined };
       if (withInstruction && instruction.trim() && resumeData) {
         body.instruction = instruction.trim();
         body.previousResume = resumeData;
@@ -97,6 +107,22 @@ export default function ResumePage() {
       <div className="flex flex-1 gap-6 p-8 max-w-7xl mx-auto w-full">
         {/* Left: inputs */}
         <div className="flex flex-col gap-6 w-96 flex-none">
+          <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
+              <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>
+                证件照（可选）
+              </span>
+            </div>
+            <label className="flex flex-col items-center justify-center w-full h-24 rounded-xl border-2 border-dashed border-gray-200 cursor-pointer hover:border-blue-400 transition-colors overflow-hidden">
+              {photo
+                ? <img src={photo} alt="photo" className="h-full object-cover" />
+                : <span className="text-xs text-gray-400">点击上传照片</span>
+              }
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+            </label>
+          </div>
+
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />

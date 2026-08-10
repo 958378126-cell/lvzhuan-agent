@@ -26,7 +26,7 @@ interface ResumeData {
   languages: { name: string; level: string; dots: number }[];
 }
 
-function buildResumeHTML(data: ResumeData): string {
+function buildResumeHTML(data: ResumeData, photo?: string): string {
   const templatePath = join(process.cwd(), "public", "template-pillar.html");
   const template = readFileSync(templatePath, "utf-8");
 
@@ -77,17 +77,24 @@ function buildResumeHTML(data: ResumeData): string {
     )
     .join("");
 
+  const photoHTML = photo
+    ? `<img class="head-photo" src="${photo}" alt="photo" />`
+    : "";
+
   const bodyContent = `
 <div class="page">
   <header class="head">
-    <h1>${data.name}</h1>
-    <div class="title">${data.title}</div>
-    <div class="contact">
-      <span>${data.phone}</span>
-      <span><a href="mailto:${data.email}">${data.email}</a></span>
-      <span>${data.location}</span>
-      <span><a href="#">${data.linkedin}</a></span>
+    <div class="head-info">
+      <h1>${data.name}</h1>
+      <div class="title">${data.title}</div>
+      <div class="contact">
+        <span>${data.phone}</span>
+        <span><a href="mailto:${data.email}">${data.email}</a></span>
+        <span>${data.location}</span>
+        <span><a href="#">${data.linkedin}</a></span>
+      </div>
     </div>
+    ${photoHTML}
   </header>
   <div class="cols">
     <div class="main">
@@ -148,7 +155,7 @@ const systemPrompt = `你是一名专业的简历撰写顾问，擅长帮助法�
 }`;
 
 export async function POST(req: NextRequest) {
-  const { jd, profile, instruction, previousResume } = await req.json();
+  const { jd, profile, instruction, previousResume, photo } = await req.json();
 
   if (!jd?.trim() || !profile?.trim()) {
     return NextResponse.json({ error: "缺少 jd 或 profile" }, { status: 400 });
@@ -198,6 +205,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON 解析失败，请重试" }, { status: 500 });
   }
 
-  const html = buildResumeHTML(data);
+  const html = buildResumeHTML(data, photo);
   return NextResponse.json({ html, resumeData: data });
 }
