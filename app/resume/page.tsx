@@ -43,7 +43,9 @@ export default function ResumePage() {
       const a = document.createElement("a");
       a.href = url;
       a.download = "律转简历.docx";
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "导出失败，请重试");
