@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_BASE_URL,
-});
-
-const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o";
-
 export async function POST(req: NextRequest) {
   try {
     const { jd, profile } = await req.json();
     if (!jd || !profile) {
       return NextResponse.json({ error: "缺少 jd 或 profile" }, { status: 400 });
     }
+
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL,
+    });
+    const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o";
 
     const prompt = `你是一名求职顾问。请根据以下信息完成两件事：
 

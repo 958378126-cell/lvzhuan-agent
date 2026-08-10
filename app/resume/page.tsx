@@ -199,6 +199,13 @@ export default function ResumePage() {
                 >
                   {exporting ? "导出中…" : "导出 Word"}
                 </button>
+                <Link
+                  href="/analyze"
+                  className="text-sm font-semibold px-5 py-2 rounded-lg text-white"
+                  style={{ backgroundColor: "#2563eb" }}
+                >
+                  一键投递 →
+                </Link>
               </div>
 
               <div className="flex-1 rounded-2xl overflow-hidden shadow-sm bg-white">

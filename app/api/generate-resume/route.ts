@@ -22,6 +22,7 @@ interface ResumeData {
   experience: Experience[];
   education: { degree: string; school: string; dates: string }[];
   skills: string[];
+  certifications: string[];
   achievements: { icon: string; title: string; desc: string }[];
   languages: { name: string; level: string; dots: number }[];
 }
@@ -81,6 +82,10 @@ function buildResumeHTML(data: ResumeData, photo?: string): string {
     ? `<img class="head-photo" src="${photo}" alt="photo" />`
     : "";
 
+  const certificationsHTML = data.certifications?.length
+    ? `<section><h2>证书 / 资质</h2><div class="pills">${data.certifications.map((c) => `<span>${c}</span>`).join("")}</div></section>`
+    : "";
+
   const bodyContent = `
 <div class="page">
   <header class="head">
@@ -104,6 +109,7 @@ function buildResumeHTML(data: ResumeData, photo?: string): string {
     </div>
     <aside class="aside">
       <section><h2>技能</h2><div class="pills">${skillsHTML}</div></section>
+      ${certificationsHTML}
       <section><h2>核心成就</h2>${achievementsHTML}</section>
       <section><h2>语言</h2>${languagesHTML}</section>
     </aside>
@@ -119,9 +125,12 @@ const systemPrompt = `你是一名专业的简历撰写顾问，擅长帮助法�
 
 严格规则：
 1. 只使用用户档案中真实存在的经历和能力，绝不杜撰。
-2. 用 JD 的语言和关键词"翻译"用户的法律经历，让 PM 招聘方看得懂。
-3. 每条 bullet 要有具体动作 + 结果，避免空洞描述。
-4. summary 直接点明转型方向和核心优势，不超过 3 句话。
+2. 【重要】教育经历（大学、研究生、MBA、在校学习等）必须且只能放在 education 字段，绝对不能出现在 experience 工作经历里。experience 只放真实的工作/实习经历。
+3. 【重要】日期必须严格使用档案中明确写明的时间，不得推断或捏造。如果档案中没有明确时间，用"—"代替，不要填写任何猜测的年份。
+4. 用 JD 的语言和关键词"翻译"用户的法律经历，让 PM 招聘方看得懂。
+5. 每条 bullet 要有具体动作 + 结果，避免空洞描述。
+6. summary 直接点明转型方向和核心优势，不超过 3 句话。
+7. 【重要】仔细对照 JD 的每一项要求，将档案中符合的资格证书和考试成绩（如法律职业资格证/法考、英语四六级、PMP、律师执照等）全部填入 certifications 字段，这是关键加分项，不能遗漏。
 
 只输出合法 JSON，不要有任何解释文字，格式如下：
 {
@@ -145,6 +154,7 @@ const systemPrompt = `你是一名专业的简历撰写顾问，擅长帮助法�
     { "degree": "学位 · 专业", "school": "学校", "dates": "2015 — 2018" }
   ],
   "skills": ["技能1", "技能2"],
+  "certifications": ["法律职业资格证（法考）A证", "英语六级 xxx分"],
   "achievements": [
     { "icon": "★", "title": "成就标题", "desc": "一句话描述" }
   ],
