@@ -12,10 +12,11 @@ interface Strength { point: string; detail: string }
 interface Gap { point: string; detail: string }
 interface Suggestion { action: string; priority: "high" | "medium" | "low" }
 interface VerifiedFact { category: "education" | "certification" | "work" | "internship" | "project" | "skill"; item: string; evidence: string }
-interface Requirement { requirement: string; status: "met" | "partial" | "gap"; evidence: string; action: string }
+interface Requirement { requirement: string; status: "met" | "partial" | "gap"; tier: "must" | "nice"; matchScore: number; evidence: string; action: string }
 interface Translation { source: string; translated: string; targetRequirement: string; matchType: "direct" | "transferable" | "adjacent" }
 interface JDDecode { role: string; level: string; responsibilities: string[]; mustHaves: string[]; niceToHaves: string[]; hiddenSignals: string[]; assumptions: string[] }
 interface Risk { risk: string; concern: string; response: string }
+interface ScoreAudit { formula: string; mustHave: { score: number; count: number }; niceToHave: { score: number; count: number }; hiddenSignals: { score: number; count: number }; mustHaveGaps: number; hardGateMiss: boolean }
 
 interface AnalysisResult {
   score: number;
@@ -24,6 +25,7 @@ interface AnalysisResult {
   decision: { recommendation: "apply" | "cautious" | "skip"; rationale: string };
   jdDecode: JDDecode;
   risks: Risk[];
+  scoreAudit: ScoreAudit;
   strengths: Strength[];
   gaps: Gap[];
   suggestions: Suggestion[];
@@ -323,6 +325,16 @@ export default function AnalyzePage() {
                 </div>
               </div>
 
+              <div className="rounded-2xl bg-white p-5 shadow-sm">
+                <div className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "#1a2744" }}>匹配分审计 · 程序计算</div>
+                <p className="text-xs text-gray-500 leading-5">{result.scoreAudit.formula}</p>
+                <div className="grid grid-cols-3 gap-3 mt-3 text-center">
+                  <div className="rounded-lg bg-red-50 p-2"><div className="text-xs text-gray-500">Must Have</div><div className="font-bold text-red-700">{result.scoreAudit.mustHave.score}%</div><div className="text-xs text-gray-400">{result.scoreAudit.mustHave.count} 条</div></div>
+                  <div className="rounded-lg bg-amber-50 p-2"><div className="text-xs text-gray-500">Nice to Have</div><div className="font-bold text-amber-700">{result.scoreAudit.niceToHave.score}%</div><div className="text-xs text-gray-400">{result.scoreAudit.niceToHave.count} 条</div></div>
+                  <div className="rounded-lg bg-blue-50 p-2"><div className="text-xs text-gray-500">Hidden Signals</div><div className="font-bold text-blue-700">{result.scoreAudit.hiddenSignals.score}%</div><div className="text-xs text-gray-400">{result.scoreAudit.hiddenSignals.count} 条</div></div>
+                </div>
+              </div>
+
               {/* Keywords */}
               <div className="rounded-2xl bg-white p-6 shadow-sm">
                 <div className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "#1a2744" }}>
@@ -370,7 +382,7 @@ export default function AnalyzePage() {
                         <div className="flex items-start gap-3">
                           <span className="text-xs font-semibold px-2 py-1 rounded flex-none" style={{ backgroundColor: `${color}18`, color }}>{label}</span>
                           <div>
-                            <div className="text-sm font-semibold text-gray-800">{item.requirement}</div>
+                        <div className="flex items-center gap-2"><div className="text-sm font-semibold text-gray-800">{item.requirement}</div><span className="text-xs text-gray-400">{item.tier === "must" ? "Must" : "Nice"} · {Math.round(item.matchScore * 100)}%</span></div>
                             <div className="text-xs text-gray-500 mt-1 leading-5">依据：{item.evidence}</div>
                             <div className="text-xs text-gray-700 mt-1 leading-5">下一步：{item.action}</div>
                           </div>

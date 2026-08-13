@@ -65,6 +65,18 @@ export const DEMO_ANALYSIS = {
   risks: [
     { risk: "产品身份跨度", concern: "过往主要以法务身份出现，招聘经理可能担心正式产品经验不足。", response: "用合同台账原型、需求梳理和流程提效案例证明已承担产品化工作。" },
   ],
+  hiddenSignalScores: [
+    { signal: "需要把法律场景翻译成产品需求", score: 0.9 },
+    { signal: "重视从需求到落地的 ownership", score: 0.8 },
+  ],
+  scoreAudit: {
+    formula: "Must Have 60% + Nice to Have 20% + Hidden Signals 20%（按实际存在的类别归一化）",
+    mustHave: { score: 83, count: 3 },
+    niceToHave: { score: 50, count: 2 },
+    hiddenSignals: { score: 85, count: 2 },
+    mustHaveGaps: 0,
+    hardGateMiss: false,
+  },
   strengths: [
     { point: "合同管理场景高度匹配", detail: "具备 300 余份合同的一线处理经验，理解真实用户与风险节点。" },
     { point: "跨部门推动经验", detail: "曾协调采购、信息化与业务部门，并形成可量化的流程效率提升。" },
@@ -88,9 +100,9 @@ export const DEMO_ANALYSIS = {
     { category: "project" as const, item: "合同台账原型与 12 类风险标签", evidence: "原始简历项目事实" },
   ],
   requirements: [
-    { requirement: "理解合同管理场景", status: "met" as const, evidence: "300 余份合同审核及台账建设经验", action: "在简历首屏明确量化呈现" },
-    { requirement: "跨部门项目推进", status: "met" as const, evidence: "协调采购、信息化与业务部门优化流程", action: "用 7 天缩短至 4 天证明结果" },
-    { requirement: "正式产品上线经验", status: "gap" as const, evidence: "目前只有内部原型证据", action: "补充一次完整产品验证或上线案例" },
+    { requirement: "理解合同管理场景", status: "met" as const, tier: "must" as const, matchScore: 1, evidence: "300 余份合同审核及台账建设经验", action: "在简历首屏明确量化呈现" },
+    { requirement: "跨部门项目推进", status: "met" as const, tier: "must" as const, matchScore: 1, evidence: "协调采购、信息化与业务部门优化流程", action: "用 7 天缩短至 4 天证明结果" },
+    { requirement: "正式产品上线经验", status: "gap" as const, tier: "nice" as const, matchScore: 0, evidence: "目前只有内部原型证据", action: "补充一次完整产品验证或上线案例" },
   ],
   translations: [
     { source: "协调多部门优化合同审批", translated: "跨法务、采购与业务团队梳理需求并推动流程落地", targetRequirement: "跨部门项目推进", matchType: "transferable" as const },

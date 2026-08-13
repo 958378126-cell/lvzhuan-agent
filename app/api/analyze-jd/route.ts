@@ -3,6 +3,7 @@ import { requestValidatedJSON } from "@/lib/ai";
 import { DEMO_ANALYSIS } from "@/lib/demo-data";
 import { analysisSchema, jdDecodeSchema } from "@/lib/schemas";
 import { buildFactInventory } from "@/lib/fact-inventory";
+import { calculateDeterministicScore } from "@/lib/match-score";
 
 const decodePrompt = `你是资深招聘经理，先把 JD 从招聘话术解码为可验证的招聘需求。不要分析候选人，不要编公司信息。识别岗位、级别、职责、Must Have、Nice to Have、Hidden Signals，以及你对含糊表述的假设。中文输出，只返回合法 JSON：{"role":"岗位","level":"级别","responsibilities":["职责"],"mustHaves":["硬要求"],"niceToHaves":["加分项"],"hiddenSignals":["隐含信号"],"assumptions":["假设"]}`;
 
@@ -26,13 +27,14 @@ const systemPrompt = `你是一名严谨的法律转型职业顾问。你将收�
   "decision":{"recommendation":"apply|cautious|skip","rationale":"理由"},
   "jdDecode":{"role":"岗位","level":"级别","responsibilities":["职责"],"mustHaves":["硬要求"],"niceToHaves":["加分项"],"hiddenSignals":["隐含信号"],"assumptions":["假设"]},
   "risks":[{"risk":"风险维度","concern":"招聘经理可能担心什么","response":"如何回应"}],
+  "hiddenSignalScores":[{"signal":"隐含信号","score":0.5}],
   "summary":"总结",
   "strengths":[{"point":"优势","detail":"来自事实底座的证据"}],
   "gaps":[{"point":"真实缺口或部分满足项","detail":"JD要求、当前事实和差距"}],
   "suggestions":[{"action":"可执行补足方案","priority":"high|medium|low"}],
   "keywords":["关键词"],
   "verifiedFacts":[{"category":"education|certification|work|internship|project|skill","item":"完整事实项","evidence":"原档案证据"}],
-  "requirements":[{"requirement":"JD要求","status":"met|partial|gap","evidence":"核对证据","action":"已满足则说明如何呈现；否则说明如何补足"}],
+  "requirements":[{"requirement":"JD要求","status":"met|partial|gap","tier":"must|nice","matchScore":0.5,"evidence":"核对证据","action":"已满足则说明如何呈现；否则说明如何补足"}],
   "translations":[{"source":"原始经历事实","translated":"忠于事实的JD语言表达","targetRequirement":"对应JD要求","matchType":"direct|transferable|adjacent"}]
 }
 verifiedFacts 必须优先完整覆盖档案里出现的全部证书，以及所有教育、工作、实习事实；不得只挑与 JD 匹配的事实。
@@ -66,7 +68,9 @@ export async function POST(req: NextRequest) {
         { role: "user", content: `JD 解码结果（先解码再匹配，不要退回原始 JD 话术）：\n${JSON.stringify(decoded)}\n\n已经完成的硬事实清单（不得否认或遗漏）：\n${JSON.stringify(facts)}\n\nAI 能力档案：\n${profile}\n\n独立提供的原始简历全文（最高优先级；可能为空）：\n${resumeContext ?? ""}\n\n目标 JD：\n${jd}` },
       ],
     });
-    return NextResponse.json({ ...data, jdDecode: data.jdDecode?.responsibilities?.length ? data.jdDecode : decoded, verifiedFacts: facts });
+    const finalDecode = data.jdDecode?.responsibilities?.length ? data.jdDecode : decoded;
+    const scored = calculateDeterministicScore(analysisSchema.parse(data), finalDecode);
+    return NextResponse.json({ ...data, ...scored, jdDecode: finalDecode, verifiedFacts: facts });
   } catch (error) {
     const message = error instanceof Error ? error.message : "分析失败";
     return NextResponse.json({ error: message }, { status: 502 });

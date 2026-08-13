@@ -30,6 +30,15 @@ export const analysisSchema = z.object({
     assumptions: z.array(shortText(500)).max(8),
   }).default({ role: "未识别", level: "未识别", responsibilities: [], mustHaves: [], niceToHaves: [], hiddenSignals: [], assumptions: [] }),
   risks: z.array(z.object({ risk: shortText(160), concern: shortText(500), response: shortText(600) })).max(8).default([]),
+  hiddenSignalScores: z.array(z.object({ signal: shortText(500), score: z.coerce.number().min(0).max(1) })).max(12).default([]),
+  scoreAudit: z.object({
+    formula: shortText(300),
+    mustHave: z.object({ score: z.coerce.number().min(0).max(100), count: z.coerce.number().int().min(0) }),
+    niceToHave: z.object({ score: z.coerce.number().min(0).max(100), count: z.coerce.number().int().min(0) }),
+    hiddenSignals: z.object({ score: z.coerce.number().min(0).max(100), count: z.coerce.number().int().min(0) }),
+    mustHaveGaps: z.coerce.number().int().min(0),
+    hardGateMiss: z.boolean(),
+  }).default({ formula: "", mustHave: { score: 0, count: 0 }, niceToHave: { score: 0, count: 0 }, hiddenSignals: { score: 0, count: 0 }, mustHaveGaps: 0, hardGateMiss: false }),
   strengths: z
     .array(z.object({ point: shortText(120), detail: shortText(600) }))
     .min(1)
@@ -59,6 +68,8 @@ export const analysisSchema = z.object({
     z.object({
       requirement: shortText(300),
       status: z.enum(["met", "partial", "gap"]),
+      tier: z.enum(["must", "nice"]).default("must"),
+      matchScore: z.coerce.number().min(0).max(1).default(0),
       evidence: shortText(700),
       action: shortText(700),
     })
@@ -158,3 +169,4 @@ export const interviewResponseSchema = z.object({
 });
 
 export type ResumeData = z.infer<typeof resumeSchema>;
+export type AnalysisData = z.infer<typeof analysisSchema>;
