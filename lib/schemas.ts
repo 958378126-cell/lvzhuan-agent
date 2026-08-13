@@ -185,6 +185,12 @@ export const interviewResponseSchema = z.object({
   done: z.boolean(),
   reply: shortText(2000),
   profile: z.string().trim().max(40_000),
+  careerHypotheses: z.array(z.object({
+    role: shortText(160),
+    why: shortText(600),
+    evidence: z.array(shortText(500)).max(4),
+    toValidate: shortText(500),
+  })).max(6).default([]),
 }).superRefine((value, context) => {
   if (value.done && value.profile.length < 50) {
     context.addIssue({

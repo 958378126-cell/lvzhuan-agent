@@ -7,7 +7,10 @@ import { DEMO_RESUME_TEXT } from "@/lib/demo-data";
 interface Message {
   role: "assistant" | "user";
   text: string;
+  careerHypotheses?: CareerHypothesis[];
 }
+
+interface CareerHypothesis { role: string; why: string; evidence: string[]; toValidate: string }
 
 const PROFILE_KEY = "lvzhuan_profile";
 const MESSAGES_KEY = "lvzhuan_interview_messages";
@@ -90,7 +93,7 @@ export default function InterviewPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "启动失败");
-      const opening: Message = { role: "assistant", text: data.reply };
+      const opening: Message = { role: "assistant", text: data.reply, careerHypotheses: data.careerHypotheses };
       setMessages([opening]);
       setStep("chat");
     } catch (e: unknown) {
@@ -123,11 +126,11 @@ export default function InterviewPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "访谈失败");
       if (data.done) {
-        setMessages((m) => [...m, { role: "assistant", text: data.reply }]);
+        setMessages((m) => [...m, { role: "assistant", text: data.reply, careerHypotheses: data.careerHypotheses }]);
         localStorage.setItem(PROFILE_KEY, data.profile ?? "");
         setDone(true);
       } else {
-        setMessages((m) => [...m, { role: "assistant", text: data.reply }]);
+        setMessages((m) => [...m, { role: "assistant", text: data.reply, careerHypotheses: data.careerHypotheses }]);
       }
     } catch {
       setMessages((m) => [...m, { role: "assistant", text: "网络出错了，请重试一下。" }]);
@@ -190,7 +193,7 @@ export default function InterviewPage() {
       if (!res.ok) throw new Error(data.error ?? "演示档案生成失败");
       localStorage.setItem(PROFILE_KEY, data.profile);
       setResumeText(DEMO_RESUME_TEXT);
-      setMessages([{ role: "assistant", text: data.reply }]);
+      setMessages([{ role: "assistant", text: data.reply, careerHypotheses: data.careerHypotheses }]);
       setDone(true);
       setStep("chat");
     } catch (error) {
@@ -317,6 +320,22 @@ export default function InterviewPage() {
               >
                 {m.text}
               </div>
+              {m.careerHypotheses && m.careerHypotheses.length > 0 && (
+                <div className="basis-full ml-10 mt-3 w-full max-w-2xl rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                  <div className="text-xs font-semibold tracking-widest uppercase text-blue-700">初步职业方向 · 待验证假设</div>
+                  <p className="mt-1 text-xs leading-5 text-blue-600">这些不是最终结论，Agent 会通过后续问题验证；也可以告诉它你完全不感兴趣。</p>
+                  <div className="mt-3 grid grid-cols-1 gap-3">
+                    {m.careerHypotheses.map((item, index) => (
+                      <div key={`${item.role}-${index}`} className="rounded-xl bg-white p-3">
+                        <div className="text-sm font-semibold text-gray-800">{index + 1}. {item.role}</div>
+                        <div className="mt-1 text-xs leading-5 text-gray-600">为什么：{item.why}</div>
+                        <div className="mt-1 text-xs leading-5 text-gray-500">证据：{item.evidence.join("；")}</div>
+                        <div className="mt-1 text-xs leading-5 text-blue-600">待验证：{item.toValidate}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
