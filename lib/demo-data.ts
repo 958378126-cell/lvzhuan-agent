@@ -47,7 +47,24 @@ export const DEMO_JD = `法律科技产品经理
 
 export const DEMO_ANALYSIS = {
   score: 82,
+  scoreRange: "76-84%",
   summary: "场景经验突出，产品方法待补强",
+  decision: {
+    recommendation: "apply" as const,
+    rationale: "合同管理场景和跨部门推进高度匹配，建议投递并在简历中补强产品方法与数据分析证据。",
+  },
+  jdDecode: {
+    role: "法律科技产品经理",
+    level: "中级 / 3年以上经验",
+    responsibilities: ["合同管理产品需求调研、流程设计、原型输出和项目推进", "协调法务、研发及业务团队推动落地", "根据用户反馈持续优化产品"],
+    mustHaves: ["3年以上法律或产品相关经验", "理解合同管理场景", "跨部门协作"],
+    niceToHaves: ["数据分析能力", "AI 产品经验"],
+    hiddenSignals: ["需要把法律场景翻译成产品需求", "重视从需求到落地的 ownership"],
+    assumptions: ["JD 未明确团队规模和汇报对象，暂按中型产品团队理解"],
+  },
+  risks: [
+    { risk: "产品身份跨度", concern: "过往主要以法务身份出现，招聘经理可能担心正式产品经验不足。", response: "用合同台账原型、需求梳理和流程提效案例证明已承担产品化工作。" },
+  ],
   strengths: [
     { point: "合同管理场景高度匹配", detail: "具备 300 余份合同的一线处理经验，理解真实用户与风险节点。" },
     { point: "跨部门推动经验", detail: "曾协调采购、信息化与业务部门，并形成可量化的流程效率提升。" },

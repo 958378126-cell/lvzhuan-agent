@@ -14,10 +14,16 @@ interface Suggestion { action: string; priority: "high" | "medium" | "low" }
 interface VerifiedFact { category: "education" | "certification" | "work" | "internship" | "project" | "skill"; item: string; evidence: string }
 interface Requirement { requirement: string; status: "met" | "partial" | "gap"; evidence: string; action: string }
 interface Translation { source: string; translated: string; targetRequirement: string; matchType: "direct" | "transferable" | "adjacent" }
+interface JDDecode { role: string; level: string; responsibilities: string[]; mustHaves: string[]; niceToHaves: string[]; hiddenSignals: string[]; assumptions: string[] }
+interface Risk { risk: string; concern: string; response: string }
 
 interface AnalysisResult {
   score: number;
+  scoreRange: string;
   summary: string;
+  decision: { recommendation: "apply" | "cautious" | "skip"; rationale: string };
+  jdDecode: JDDecode;
+  risks: Risk[];
   strengths: Strength[];
   gaps: Gap[];
   suggestions: Suggestion[];
@@ -29,6 +35,8 @@ interface AnalysisResult {
 
 const priorityLabel = { high: "优先", medium: "建议", low: "可选" };
 const priorityColor = { high: "#e53e3e", medium: "#d97706", low: "#6b7280" };
+const decisionLabel = { apply: "值得投", cautious: "谨慎投", skip: "不建议投" };
+const decisionColor = { apply: "#16a34a", cautious: "#d97706", skip: "#e53e3e" };
 
 interface EmailDraft {
   email: string;
@@ -290,10 +298,28 @@ export default function AnalyzePage() {
                   {result.score}
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400 mb-1 uppercase tracking-widest">匹配度</div>
+                  <div className="text-xs text-gray-400 mb-1 uppercase tracking-widest">匹配度 {result.scoreRange ? `· ${result.scoreRange}` : ""}</div>
                   <div className="text-lg font-bold" style={{ color: "#1a2744" }}>
                     {result.summary}
                   </div>
+                </div>
+                <div className="ml-auto text-center rounded-xl px-4 py-3" style={{ backgroundColor: `${decisionColor[result.decision.recommendation]}15` }}>
+                  <div className="text-xs text-gray-400 mb-1">投递建议</div>
+                  <div className="text-base font-bold" style={{ color: decisionColor[result.decision.recommendation] }}>{decisionLabel[result.decision.recommendation]}</div>
+                  <div className="text-xs text-gray-500 mt-1 max-w-xs">{result.decision.rationale}</div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white p-6 shadow-sm">
+                <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "#1a2744" }}>JD 解码 · 招聘经理真正想招什么</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div><span className="text-gray-400">岗位 / 级别：</span>{result.jdDecode.role} · {result.jdDecode.level}</div>
+                  <div><span className="text-gray-400">职责：</span>{result.jdDecode.responsibilities.join("；")}</div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div className="rounded-xl bg-red-50 p-4"><div className="text-xs font-semibold text-red-700 mb-2">Must Have</div><div className="text-xs text-gray-700 leading-5">{result.jdDecode.mustHaves.join("；") || "未识别"}</div></div>
+                  <div className="rounded-xl bg-amber-50 p-4"><div className="text-xs font-semibold text-amber-700 mb-2">Nice to Have</div><div className="text-xs text-gray-700 leading-5">{result.jdDecode.niceToHaves.join("；") || "未识别"}</div></div>
+                  <div className="rounded-xl bg-blue-50 p-4"><div className="text-xs font-semibold text-blue-700 mb-2">Hidden Signals</div><div className="text-xs text-gray-700 leading-5">{result.jdDecode.hiddenSignals.join("；") || "未识别"}</div></div>
                 </div>
               </div>
 
@@ -373,6 +399,15 @@ export default function AnalyzePage() {
                         <div className="text-xs text-blue-600 mt-2">对应：{item.targetRequirement}</div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {result.risks.length > 0 && (
+                <div className="rounded-2xl bg-white p-6 shadow-sm">
+                  <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "#d97706" }}>招聘经理可能担心的风险</div>
+                  <div className="flex flex-col gap-3">
+                    {result.risks.map((item, index) => <div key={index} className="rounded-xl border border-amber-100 bg-amber-50 p-4"><div className="text-sm font-semibold text-gray-800">{item.risk}</div><div className="text-xs text-gray-600 mt-1">担心：{item.concern}</div><div className="text-xs text-blue-700 mt-1">回应方向：{item.response}</div></div>)}
                   </div>
                 </div>
               )}

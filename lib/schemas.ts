@@ -2,9 +2,34 @@ import { z } from "zod";
 
 const shortText = (max: number) => z.string().trim().max(max);
 
+export const jdDecodeSchema = z.object({
+  role: shortText(160),
+  level: shortText(80),
+  responsibilities: z.array(shortText(500)).min(1).max(12),
+  mustHaves: z.array(shortText(500)).max(15),
+  niceToHaves: z.array(shortText(500)).max(15),
+  hiddenSignals: z.array(shortText(500)).max(12),
+  assumptions: z.array(shortText(500)).max(8),
+});
+
 export const analysisSchema = z.object({
   score: z.coerce.number().min(0).max(100),
+  scoreRange: shortText(40).default(""),
   summary: shortText(300),
+  decision: z.object({
+    recommendation: z.enum(["apply", "cautious", "skip"]),
+    rationale: shortText(700),
+  }).default({ recommendation: "cautious", rationale: "需要结合具体 JD 和事实进一步判断。" }),
+  jdDecode: z.object({
+    role: shortText(160),
+    level: shortText(80),
+    responsibilities: z.array(shortText(500)).max(12),
+    mustHaves: z.array(shortText(500)).max(15),
+    niceToHaves: z.array(shortText(500)).max(15),
+    hiddenSignals: z.array(shortText(500)).max(12),
+    assumptions: z.array(shortText(500)).max(8),
+  }).default({ role: "未识别", level: "未识别", responsibilities: [], mustHaves: [], niceToHaves: [], hiddenSignals: [], assumptions: [] }),
+  risks: z.array(z.object({ risk: shortText(160), concern: shortText(500), response: shortText(600) })).max(8).default([]),
   strengths: z
     .array(z.object({ point: shortText(120), detail: shortText(600) }))
     .min(1)
