@@ -164,7 +164,11 @@ export default function AnalyzePage() {
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm px-1">{error}</p>}
+          {error && (
+            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm leading-6">
+              <span className="font-semibold">分析未完成：</span>{error}
+            </div>
+          )}
 
           <button
             onClick={analyze}
