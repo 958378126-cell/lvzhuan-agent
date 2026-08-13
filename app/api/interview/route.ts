@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requestValidatedJSON } from "@/lib/ai";
 import { DEMO_PROFILE } from "@/lib/demo-data";
 import { interviewResponseSchema } from "@/lib/schemas";
+import { attachOriginalResume } from "@/lib/profile-facts";
 
 interface Message {
   role: "assistant" | "user";
@@ -11,6 +12,7 @@ interface Message {
 const SYSTEM = `你是一名专业的职业转型顾问，专门帮助法律背景人士（律师、法务、法学生）转型到 legaltech / PM / 产品运营等岗位。
 
 你的任务是通过对话式访谈，深度挖掘用户的真实经历，把他们用法律语言描述的工作经历翻译成 PM 招聘方能看懂的能力。
+用户上传的原始简历是不可丢失的事实底座：其中所有教育背景、资格证书、工作经历、实习经历、项目经历都必须完整保留。访谈用于补充和翻译事实，不能用 3-5 条摘要替代完整事实。
 
 访谈原则：
 1. 一次只问一个问题，绝不连问。
@@ -34,8 +36,20 @@ const SYSTEM = `你是一名专业的职业转型顾问，专门帮助法律背�
 ## 教育背景
 [列出所有学历，格式：学校 · 专业 · 学位 · 毕业年份，每条一行，未提及则留空]
 
-## 核心经历
-[列出 3-5 条工作/项目经历，用 PM 语言重新描述]
+## 资格证书与考试
+[逐项完整列出原始简历和访谈中出现的全部证书、执照、考试成绩。包括但不限于法考、证券从业资格、基金从业资格、英语、PMP。不得筛选或遗漏。]
+
+## 全部工作经历
+[逐项完整保留所有工作经历的单位、职位、日期和事实，不得只选 3-5 条]
+
+## 全部实习经历
+[逐项完整保留所有实习经历的单位、岗位、日期和事实，无则写“未提供”]
+
+## 全部项目与其他经历
+[逐项完整保留项目、比赛、校园、志愿等经历，无则写“未提供”]
+
+## 经历能力转译
+[从上述完整事实中选取最有价值的经历，用 PM / Legaltech 语言重新描述；必须能追溯到原始事实]
 
 ## 王牌能力（绿色）
 [3-5 条真实优势，每条一句话，要具体]
@@ -76,7 +90,12 @@ export async function POST(req: NextRequest) {
       maxTokens: 2048,
       messages: [{ role: "system", content: system }, ...chatMessages],
     });
-    return NextResponse.json(response);
+    return NextResponse.json({
+      ...response,
+      profile: response.done
+        ? attachOriginalResume(response.profile, resumeContext)
+        : response.profile,
+    });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 502 });

@@ -6,6 +6,7 @@ import { DEMO_JD, DEMO_PROFILE } from "@/lib/demo-data";
 
 const PROFILE_KEY = "lvzhuan_profile";
 const JD_KEY = "lvzhuan_jd";
+const RESUME_CTX_KEY = "lvzhuan_resume_context";
 
 export default function ResumePage() {
   const [photo, setPhoto] = useState<string>("");
@@ -20,6 +21,7 @@ export default function ResumePage() {
 
   const [jd, setJd] = useState("");
   const [profile, setProfile] = useState("");
+  const [resumeContext, setResumeContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [html, setHtml] = useState("");
   const [resumeData, setResumeData] = useState<unknown>(null);
@@ -32,6 +34,7 @@ export default function ResumePage() {
   useEffect(() => {
     setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
     setJd(localStorage.getItem(JD_KEY) ?? "");
+    setResumeContext(localStorage.getItem(RESUME_CTX_KEY) ?? "");
   }, []);
 
   async function exportDocx() {
@@ -70,7 +73,7 @@ export default function ResumePage() {
     try {
       localStorage.setItem(PROFILE_KEY, profile);
       localStorage.setItem(JD_KEY, jd);
-      const body: Record<string, unknown> = { jd, profile, photo: photo || undefined, demo: demoMode };
+      const body: Record<string, unknown> = { jd, profile, resumeContext, photo: photo || undefined, demo: demoMode };
       if (withInstruction && instruction.trim() && resumeData) {
         body.instruction = instruction.trim();
         body.previousResume = resumeData;

@@ -5,12 +5,12 @@ import { buildResumeHTML } from "@/lib/resume-html";
 import { resumeSchema } from "@/lib/schemas";
 
 const systemPrompt = `你是一名专业简历顾问，帮助法律背景人士转型 legaltech / PM。
-只使用档案中真实存在的信息，绝不杜撰。教育经历只能放 education，工作/实习才放 experience。档案无明确日期则用“—”。用 JD 语言翻译真实经历，每条 bullet 使用动作和真实结果，不能创造数字。证书不得遗漏。
+只使用档案中真实存在的信息，绝不杜撰。“原始简历事实底座”是最高优先级事实来源。教育经历只能放 education，工作和实习放 experience。必须保留原始事实底座里的全部证书，以及全部与目标岗位相关的工作和实习经历；不能因为能力总结未提及就删除。档案无明确日期则用“—”。用 JD 语言翻译真实经历，每条 bullet 使用动作和真实结果，不能创造数字。证书不得遗漏。
 输出字段：name,title,phone,email,location,linkedin,summary,experience[{role,org,dates,location,bullets}],education[{degree,school,dates}],skills,certifications,achievements[{icon,title,desc}],languages[{name,level,dots}]。只返回合法 JSON。`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { jd, profile, instruction, previousResume, photo, demo } = await req.json();
+    const { jd, profile, resumeContext, instruction, previousResume, photo, demo } = await req.json();
     if (demo) {
       const data = resumeSchema.parse(DEMO_RESUME);
       return NextResponse.json({ html: buildResumeHTML(data), resumeData: data });
@@ -22,9 +22,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "输入内容过长，请精简后重试" }, { status: 413 });
     }
 
+    const facts = `能力档案：\n${profile}\n\n原始简历全文（最高优先级）：\n${resumeContext ?? ""}`;
     const userPrompt = instruction && previousResume
-      ? `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n当前简历 JSON：\n${JSON.stringify(previousResume)}\n\n修改指令：${instruction}\n\n保留未涉及部分，输出完整简历 JSON。`
-      : `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n生成简历 JSON。`;
+      ? `${facts}\n\n目标 JD：\n${jd}\n\n当前简历 JSON：\n${JSON.stringify(previousResume)}\n\n修改指令：${instruction}\n\n保留未涉及部分，输出完整简历 JSON。`
+      : `${facts}\n\n目标 JD：\n${jd}\n\n生成简历 JSON。`;
     const data = await requestValidatedJSON({
       schema: resumeSchema,
       maxTokens: 4096,

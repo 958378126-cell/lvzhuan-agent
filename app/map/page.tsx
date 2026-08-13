@@ -34,7 +34,12 @@ function parseProfile(raw: string): ParsedProfile {
   return {
     name: nameMatch?.[1]?.trim() ?? "",
     target: targetMatch?.[1]?.trim() ?? "Legaltech PM",
-    experiences: listItems(section("核心经历")),
+    experiences: [
+      ...listItems(section("全部工作经历")),
+      ...listItems(section("全部实习经历")),
+      ...listItems(section("全部项目与其他经历")),
+      ...listItems(section("核心经历")),
+    ].filter((item) => item !== "未提供"),
     strengths: listItems(section("王牌能力（绿色）")),
     gaps: listItems(section("待补充区域（红色）")),
     keywords: kwSection

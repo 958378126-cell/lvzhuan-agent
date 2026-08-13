@@ -6,10 +6,14 @@ import { DEMO_JD, DEMO_PROFILE } from "@/lib/demo-data";
 
 const PROFILE_KEY = "lvzhuan_profile";
 const JD_KEY = "lvzhuan_jd";
+const RESUME_CTX_KEY = "lvzhuan_resume_context";
 
 interface Strength { point: string; detail: string }
 interface Gap { point: string; detail: string }
 interface Suggestion { action: string; priority: "high" | "medium" | "low" }
+interface VerifiedFact { category: "education" | "certification" | "work" | "internship" | "project" | "skill"; item: string; evidence: string }
+interface Requirement { requirement: string; status: "met" | "partial" | "gap"; evidence: string; action: string }
+interface Translation { source: string; translated: string; targetRequirement: string }
 
 interface AnalysisResult {
   score: number;
@@ -18,6 +22,9 @@ interface AnalysisResult {
   gaps: Gap[];
   suggestions: Suggestion[];
   keywords: string[];
+  verifiedFacts: VerifiedFact[];
+  requirements: Requirement[];
+  translations: Translation[];
 }
 
 const priorityLabel = { high: "优先", medium: "建议", low: "可选" };
@@ -32,6 +39,7 @@ interface EmailDraft {
 export default function AnalyzePage() {
   const [jd, setJd] = useState("");
   const [profile, setProfile] = useState("");
+  const [resumeContext, setResumeContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
@@ -44,6 +52,7 @@ export default function AnalyzePage() {
   useEffect(() => {
     setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
     setJd(localStorage.getItem(JD_KEY) ?? "");
+    setResumeContext(localStorage.getItem(RESUME_CTX_KEY) ?? "");
   }, []);
 
   async function draftEmail() {
@@ -54,7 +63,7 @@ export default function AnalyzePage() {
       const res = await fetch("/api/draft-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd, profile, demo: demoMode }),
+        body: JSON.stringify({ jd, profile, resumeContext, demo: demoMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "生成失败");
@@ -84,10 +93,11 @@ export default function AnalyzePage() {
     try {
       localStorage.setItem(PROFILE_KEY, profile);
       localStorage.setItem(JD_KEY, jd);
+      if (resumeContext.trim()) localStorage.setItem(RESUME_CTX_KEY, resumeContext);
       const res = await fetch("/api/analyze-jd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd, profile, demo: demoMode }),
+        body: JSON.stringify({ jd, profile, resumeContext, demo: demoMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "分析失败");
@@ -102,6 +112,7 @@ export default function AnalyzePage() {
   function loadDemo() {
     setProfile(DEMO_PROFILE);
     setJd(DEMO_JD);
+    setResumeContext("");
     setDemoMode(true);
     setResult(null);
     setError("");
@@ -136,7 +147,7 @@ export default function AnalyzePage() {
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
               <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>
-                能力档案
+                AI 能力总结
               </span>
             </div>
             <textarea
@@ -144,9 +155,25 @@ export default function AnalyzePage() {
               rows={9}
               placeholder="粘贴你的能力档案…"
               value={profile}
-              onChange={(e) => setProfile(e.target.value)}
+              onChange={(e) => { setProfile(e.target.value); setDemoMode(false); }}
             />
           </div>
+
+          <details className="rounded-2xl bg-white p-6 shadow-sm" open={!resumeContext.trim()}>
+            <summary className="cursor-pointer text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>
+              原始简历事实底座 {resumeContext.trim() ? "✓" : "（建议补充）"}
+            </summary>
+            <p className="text-xs text-gray-400 my-3 leading-5">
+              粘贴原始简历全文，确保证书、教育及所有工作/实习经历不会被能力总结遗漏。
+            </p>
+            <textarea
+              className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-y focus:outline-none focus:border-blue-400"
+              rows={8}
+              placeholder="粘贴原始简历全文，证券从业资格证等硬背景会以这里为准…"
+              value={resumeContext}
+              onChange={(event) => { setResumeContext(event.target.value); setDemoMode(false); }}
+            />
+          </details>
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
@@ -241,6 +268,63 @@ export default function AnalyzePage() {
                   ))}
                 </div>
               </div>
+
+              {/* Verified hard facts */}
+              <div className="rounded-2xl bg-white p-6 shadow-sm">
+                <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "#1a2744" }}>
+                  硬背景核对 · 以原始简历为准
+                </div>
+                <div className="flex flex-col gap-3">
+                  {result.verifiedFacts.map((fact, index) => (
+                    <div key={`${fact.category}-${index}`} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                      <div className="text-sm font-semibold text-gray-800">{fact.item}</div>
+                      <div className="text-xs text-gray-400 mt-1">{fact.evidence}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Requirement audit */}
+              <div className="rounded-2xl bg-white p-6 shadow-sm">
+                <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "#1a2744" }}>
+                  JD 要求逐项核对
+                </div>
+                <div className="flex flex-col gap-4">
+                  {result.requirements.map((item, index) => {
+                    const label = item.status === "met" ? "已满足" : item.status === "partial" ? "部分满足" : "真实缺口";
+                    const color = item.status === "met" ? "#16a34a" : item.status === "partial" ? "#d97706" : "#e53e3e";
+                    return (
+                      <div key={index} className="rounded-xl border border-gray-100 p-4">
+                        <div className="flex items-start gap-3">
+                          <span className="text-xs font-semibold px-2 py-1 rounded flex-none" style={{ backgroundColor: `${color}18`, color }}>{label}</span>
+                          <div>
+                            <div className="text-sm font-semibold text-gray-800">{item.requirement}</div>
+                            <div className="text-xs text-gray-500 mt-1 leading-5">依据：{item.evidence}</div>
+                            <div className="text-xs text-gray-700 mt-1 leading-5">下一步：{item.action}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {result.translations.length > 0 && (
+                <div className="rounded-2xl bg-white p-6 shadow-sm">
+                  <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "#2563eb" }}>
+                    经历 → JD 能力转译
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {result.translations.map((item, index) => (
+                      <div key={index} className="rounded-xl bg-blue-50 p-4">
+                        <div className="text-xs text-gray-500">原事实：{item.source}</div>
+                        <div className="text-sm text-gray-800 mt-2 leading-6">建议表达：{item.translated}</div>
+                        <div className="text-xs text-blue-600 mt-2">对应：{item.targetRequirement}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Strengths */}

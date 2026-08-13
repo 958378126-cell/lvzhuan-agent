@@ -23,6 +23,38 @@ export const analysisSchema = z.object({
     .min(1)
     .max(8),
   keywords: z.array(shortText(50)).min(1).max(20),
+  verifiedFacts: z.array(
+    z.object({
+      category: z.enum(["education", "certification", "work", "internship", "project", "skill"]),
+      item: shortText(300),
+      evidence: shortText(600),
+    })
+  ).min(1).max(60),
+  requirements: z.array(
+    z.object({
+      requirement: shortText(300),
+      status: z.enum(["met", "partial", "gap"]),
+      evidence: shortText(700),
+      action: shortText(700),
+    })
+  ).min(1).max(30),
+  translations: z.array(
+    z.object({
+      source: shortText(700),
+      translated: shortText(700),
+      targetRequirement: shortText(300),
+    })
+  ).max(15),
+});
+
+export const factInventorySchema = z.object({
+  facts: z.array(
+    z.object({
+      category: z.enum(["education", "certification", "work", "internship", "project", "skill"]),
+      item: shortText(500),
+      evidence: shortText(1000),
+    })
+  ).min(1).max(100),
 });
 
 export const resumeSchema = z.object({
