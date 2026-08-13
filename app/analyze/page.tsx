@@ -13,7 +13,7 @@ interface Gap { point: string; detail: string }
 interface Suggestion { action: string; priority: "high" | "medium" | "low" }
 interface VerifiedFact { category: "education" | "certification" | "work" | "internship" | "project" | "skill"; item: string; evidence: string }
 interface Requirement { requirement: string; status: "met" | "partial" | "gap"; evidence: string; action: string }
-interface Translation { source: string; translated: string; targetRequirement: string }
+interface Translation { source: string; translated: string; targetRequirement: string; matchType: "direct" | "transferable" | "adjacent" }
 
 interface AnalysisResult {
   score: number;
@@ -317,7 +317,12 @@ export default function AnalyzePage() {
                   <div className="flex flex-col gap-4">
                     {result.translations.map((item, index) => (
                       <div key={index} className="rounded-xl bg-blue-50 p-4">
-                        <div className="text-xs text-gray-500">原事实：{item.source}</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="text-xs text-gray-500">原事实：{item.source}</div>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: item.matchType === "direct" ? "#dcfce7" : item.matchType === "transferable" ? "#dbeafe" : "#fef3c7", color: item.matchType === "direct" ? "#15803d" : item.matchType === "transferable" ? "#1d4ed8" : "#b45309" }}>
+                            {item.matchType === "direct" ? "直接匹配" : item.matchType === "transferable" ? "可迁移能力" : "邻近能力"}
+                          </span>
+                        </div>
                         <div className="text-sm text-gray-800 mt-2 leading-6">建议表达：{item.translated}</div>
                         <div className="text-xs text-blue-600 mt-2">对应：{item.targetRequirement}</div>
                       </div>

@@ -8,6 +8,11 @@ const PROFILE_KEY = "lvzhuan_profile";
 const JD_KEY = "lvzhuan_jd";
 const RESUME_CTX_KEY = "lvzhuan_resume_context";
 
+interface ResumeOutput {
+  name: string;
+  experience: Array<{ role: string; org: string; dates: string; sourceEvidence: string[] }>;
+}
+
 export default function ResumePage() {
   const [photo, setPhoto] = useState<string>("");
 
@@ -24,7 +29,7 @@ export default function ResumePage() {
   const [resumeContext, setResumeContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [html, setHtml] = useState("");
-  const [resumeData, setResumeData] = useState<unknown>(null);
+  const [resumeData, setResumeData] = useState<ResumeOutput | null>(null);
   const [instruction, setInstruction] = useState("");
   const [error, setError] = useState("");
 
@@ -248,6 +253,27 @@ export default function ResumePage() {
                   title="简历预览"
                 />
               </div>
+
+              {resumeData?.experience?.length ? (
+                <details className="rounded-2xl bg-white p-5 shadow-sm">
+                  <summary className="cursor-pointer text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>
+                    简历改写事实审计 · 每段经历来自哪里？
+                  </summary>
+                  <p className="text-xs text-gray-400 mt-3 leading-5">
+                    这里只展示原始简历证据，不会写入简历正文。若某段显示“未找到”，请补充原始简历事实底座。
+                  </p>
+                  <div className="flex flex-col gap-3 mt-4">
+                    {resumeData.experience.map((entry, index) => (
+                      <div key={`${entry.org}-${index}`} className="rounded-xl bg-gray-50 p-3">
+                        <div className="text-sm font-semibold text-gray-800">{entry.role} · {entry.org} · {entry.dates}</div>
+                        <div className="text-xs text-gray-500 mt-1 leading-5">
+                          {entry.sourceEvidence?.length ? entry.sourceEvidence.join("；") : "未找到明确原始证据"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
 
               {/* Iterative edit */}
               <div className="rounded-2xl bg-white p-5 shadow-sm">

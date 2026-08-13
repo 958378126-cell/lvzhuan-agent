@@ -76,7 +76,7 @@ export const DEMO_ANALYSIS = {
     { requirement: "正式产品上线经验", status: "gap" as const, evidence: "目前只有内部原型证据", action: "补充一次完整产品验证或上线案例" },
   ],
   translations: [
-    { source: "协调多部门优化合同审批", translated: "跨法务、采购与业务团队梳理需求并推动流程落地", targetRequirement: "跨部门项目推进" },
+    { source: "协调多部门优化合同审批", translated: "跨法务、采购与业务团队梳理需求并推动流程落地", targetRequirement: "跨部门项目推进", matchType: "transferable" as const },
   ],
 };
 
@@ -99,6 +99,7 @@ export const DEMO_RESUME: ResumeData = {
         "协调采购、信息化及业务部门重构审批流程，将合同平均流转时间由 7 天缩短至 4 天。",
         "牵头搭建合同台账原型，设计 12 类风险标签并推动团队日常使用。",
       ],
+      sourceEvidence: ["2021 年至今在某高校法务部门工作，负责采购、软件系统和校企合作合同审核。"],
     },
   ],
   education: [{ degree: "法学学士", school: "华南某大学", dates: "2017 — 2021" }],

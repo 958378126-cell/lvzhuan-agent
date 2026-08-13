@@ -26,9 +26,10 @@ const systemPrompt = `你是一名严谨的法律转型职业顾问。你将收�
   "keywords":["关键词"],
   "verifiedFacts":[{"category":"education|certification|work|internship|project|skill","item":"完整事实项","evidence":"原档案证据"}],
   "requirements":[{"requirement":"JD要求","status":"met|partial|gap","evidence":"核对证据","action":"已满足则说明如何呈现；否则说明如何补足"}],
-  "translations":[{"source":"原始经历事实","translated":"忠于事实的JD语言表达","targetRequirement":"对应JD要求"}]
+  "translations":[{"source":"原始经历事实","translated":"忠于事实的JD语言表达","targetRequirement":"对应JD要求","matchType":"direct|transferable|adjacent"}]
 }
-verifiedFacts 必须优先完整覆盖档案里出现的全部证书，以及所有教育、工作、实习事实；不得只挑与 JD 匹配的事实。`;
+verifiedFacts 必须优先完整覆盖档案里出现的全部证书，以及所有教育、工作、实习事实；不得只挑与 JD 匹配的事实。
+每条 translations 必须标注 matchType：direct=原经历直接满足 JD，transferable=原经历可迁移满足，adjacent=只有邻近证据、不能当作已满足。`;
 
 export async function POST(req: NextRequest) {
   try {

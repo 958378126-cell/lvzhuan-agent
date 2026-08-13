@@ -43,6 +43,7 @@ export const analysisSchema = z.object({
       source: shortText(700),
       translated: shortText(700),
       targetRequirement: shortText(300),
+      matchType: z.enum(["direct", "transferable", "adjacent"]).default("transferable"),
     })
   ).max(15),
 });
@@ -73,6 +74,7 @@ export const resumeSchema = z.object({
         dates: shortText(100),
         location: shortText(100),
         bullets: z.array(shortText(800)).max(12),
+        sourceEvidence: z.array(shortText(1000)).max(12).default([]),
       })
     )
     .max(15),

@@ -43,7 +43,7 @@ export function buildDateEvidence(source: string) {
   return Array.from(new Set(lines)).slice(0, 80).join("\n");
 }
 
-function sourceEvidenceForEntry(
+export function sourceEvidenceForEntry(
   entry: { role?: string; org?: string; school?: string; degree?: string },
   lines: string[],
 ) {
@@ -58,6 +58,24 @@ function sourceEvidenceForEntry(
     if (withDate) return withDate;
   }
   return undefined;
+}
+
+export function attachResumeEvidence(data: ResumeData, source: string): ResumeData {
+  const normalizedSource = source.trim();
+  if (!normalizedSource) return data;
+  const lines = normalizedSource.split(/\r?\n|[。；;]/).map(cleanLine).filter(Boolean);
+  const findEvidence = (entry: { role?: string; org?: string; school?: string; degree?: string }) => {
+    const evidence = sourceEvidenceForEntry(entry, lines);
+    return evidence ? [evidence.slice(0, 1000)] : [];
+  };
+  return {
+    ...data,
+    experience: data.experience.map((entry) => ({
+      ...entry,
+      sourceEvidence: entry.sourceEvidence.length ? entry.sourceEvidence : findEvidence(entry),
+    })),
+    education: data.education,
+  };
 }
 
 function guardEntryDates<T extends { dates: string; role?: string; org?: string; school?: string; degree?: string }>(entry: T, lines: string[], sourceYears: Set<string>) {
