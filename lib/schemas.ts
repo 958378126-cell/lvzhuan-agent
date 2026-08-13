@@ -2,6 +2,17 @@ import { z } from "zod";
 
 const shortText = (max: number) => z.string().trim().max(max);
 
+// Models occasionally collapse a one-item evidence list into a plain string.
+// Normalize that harmless shape difference before validating the resume object
+// so a formatting slip does not block the entire generation flow.
+const evidenceList = z.preprocess(
+  (value) => {
+    if (typeof value === "string") return value.trim() ? [value] : [];
+    return value;
+  },
+  z.array(shortText(1000)).max(12).default([]),
+);
+
 export const jdDecodeSchema = z.object({
   role: shortText(160),
   level: shortText(80),
@@ -137,7 +148,7 @@ export const resumeSchema = z.object({
         dates: shortText(100),
         location: shortText(100),
         bullets: z.array(shortText(800)).max(12),
-        sourceEvidence: z.array(shortText(1000)).max(12).default([]),
+        sourceEvidence: evidenceList,
       })
     )
     .max(15),
