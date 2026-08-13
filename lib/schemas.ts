@@ -12,6 +12,27 @@ export const jdDecodeSchema = z.object({
   assumptions: z.array(shortText(500)).max(8),
 });
 
+export const resumeTemplateSchema = z.enum(["classic", "pillar", "elegant", "swiss"]);
+
+export const interviewPrepSchema = z.object({
+  role: shortText(160),
+  interviewThesis: shortText(600),
+  questions: z.array(z.object({
+    question: shortText(300),
+    competency: shortText(160),
+    whyThisRole: shortText(500),
+    evidence: z.array(shortText(700)).max(4),
+    preparation: shortText(800),
+    star: z.object({
+      situation: shortText(500),
+      task: shortText(500),
+      action: shortText(700),
+      result: shortText(700),
+    }),
+  })).min(5).max(20),
+  missingStories: z.array(shortText(500)).max(8),
+});
+
 export const analysisSchema = z.object({
   score: z.coerce.number().min(0).max(100),
   scoreRange: shortText(40).default(""),

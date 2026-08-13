@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DEMO_JD, DEMO_PROFILE } from "@/lib/demo-data";
+import { RESUME_TEMPLATES, type ResumeTemplateId } from "@/lib/resume-templates";
 
 const PROFILE_KEY = "lvzhuan_profile";
 const JD_KEY = "lvzhuan_jd";
@@ -35,6 +36,7 @@ export default function ResumePage() {
 
   const [exporting, setExporting] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [templateId, setTemplateId] = useState<ResumeTemplateId>("pillar");
 
   useEffect(() => {
     setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
@@ -68,7 +70,7 @@ export default function ResumePage() {
     }
   }
 
-  async function generate(withInstruction = false) {
+  async function generate(withInstruction = false, requestedTemplate: ResumeTemplateId = templateId) {
     if (!jd.trim() || !profile.trim()) {
       setError("请填写能力档案和目标 JD");
       return;
@@ -78,7 +80,7 @@ export default function ResumePage() {
     try {
       localStorage.setItem(PROFILE_KEY, profile);
       localStorage.setItem(JD_KEY, jd);
-      const body: Record<string, unknown> = { jd, profile, resumeContext, photo: photo || undefined, demo: demoMode };
+      const body: Record<string, unknown> = { jd, profile, resumeContext, photo: photo || undefined, templateId: requestedTemplate, demo: demoMode };
       if (withInstruction && instruction.trim() && resumeData) {
         body.instruction = instruction.trim();
         body.previousResume = resumeData;
@@ -98,6 +100,23 @@ export default function ResumePage() {
       setError(e instanceof Error ? e.message : "生成失败，请重试");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function renderTemplate(nextTemplate: ResumeTemplateId) {
+    if (!resumeData) { setTemplateId(nextTemplate); return; }
+    setTemplateId(nextTemplate);
+    try {
+      const res = await fetch("/api/generate-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ renderOnly: true, resumeData, templateId: nextTemplate, photo: photo || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "切换模板失败");
+      setHtml(data.html);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "切换模板失败，请重试");
     }
   }
 
@@ -158,6 +177,14 @@ export default function ResumePage() {
               }
               <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
             </label>
+          </div>
+
+          <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-3"><span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} /><span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>选择简历风格</span></div>
+            <p className="text-xs text-gray-400 mb-3 leading-5">同一份事实档案换模板，不会丢失经历、证书或日期。</p>
+            <div className="grid grid-cols-1 gap-2">
+              {RESUME_TEMPLATES.map((item) => <button key={item.id} type="button" onClick={() => renderTemplate(item.id)} className="text-left rounded-xl border p-3 transition-colors" style={{ borderColor: templateId === item.id ? "#2563eb" : "#e5e7eb", backgroundColor: templateId === item.id ? "#eff6ff" : "#fff" }}><div className="flex justify-between gap-2"><span className="text-sm font-semibold text-gray-800">{item.name}</span><span className="text-xs text-gray-400">ATS {item.ats}</span></div><div className="text-xs text-gray-500 mt-1">{item.description}</div></button>)}
+            </div>
           </div>
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">

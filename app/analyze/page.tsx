@@ -273,6 +273,16 @@ export default function AnalyzePage() {
           )}
 
           {result && (
+            <Link
+              href="/interview-prep"
+              className="w-full h-12 rounded-xl border text-sm font-semibold flex items-center justify-center transition-colors"
+              style={{ borderColor: "#2563eb", color: "#2563eb" }}
+            >
+              准备岗位面试 →
+            </Link>
+          )}
+
+          {result && (
             <button
               onClick={draftEmail}
               disabled={draftLoading}

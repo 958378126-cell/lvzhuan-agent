@@ -11,10 +11,14 @@ const systemPrompt = `你是一名专业简历顾问，帮助法律背景人士�
 
 export async function POST(req: NextRequest) {
   try {
-    const { jd, profile, resumeContext, instruction, previousResume, photo, demo } = await req.json();
+    const { jd, profile, resumeContext, instruction, previousResume, photo, templateId = "pillar", renderOnly, resumeData, demo } = await req.json();
+    if (renderOnly && resumeData) {
+      const data = resumeSchema.parse(resumeData);
+      return NextResponse.json({ html: buildResumeHTML(data, photo, templateId), resumeData: data, templateId });
+    }
     if (demo) {
       const data = resumeSchema.parse(DEMO_RESUME);
-      return NextResponse.json({ html: buildResumeHTML(data), resumeData: data });
+      return NextResponse.json({ html: buildResumeHTML(data, undefined, templateId), resumeData: data });
     }
     if (!jd?.trim() || !profile?.trim()) {
       return NextResponse.json({ error: "缺少 jd 或 profile" }, { status: 400 });
@@ -41,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const normalizedData = resumeSchema.parse(generatedData);
     const data = attachResumeEvidence(guardResumeDates(normalizedData, dateSource), dateSource);
-    return NextResponse.json({ html: buildResumeHTML(data, photo), resumeData: data });
+    return NextResponse.json({ html: buildResumeHTML(data, photo, templateId), resumeData: data, templateId });
   } catch (error) {
     const message = error instanceof Error ? error.message : "生成失败";
     return NextResponse.json({ error: message }, { status: 502 });

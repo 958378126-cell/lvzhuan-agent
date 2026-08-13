@@ -240,6 +240,13 @@ export default function Home() {
                 desc: "一键生成针对该 JD 的简历，生成后可用自然语言继续迭代修改。",
                 href: "/resume",
               },
+              {
+                num: "05",
+                icon: "◇",
+                title: "岗位面试准备",
+                desc: "根据 JD 和你的真实经历，生成预测题、考察点与 STAR 准备卡。",
+                href: "/interview-prep",
+              },
             ].map((item) => (
               <Link key={item.num} href={item.href} className="block">
                 <div
