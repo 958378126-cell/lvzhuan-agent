@@ -48,6 +48,7 @@ export default function AnalyzePage() {
   const [draft, setDraft] = useState<EmailDraft | null>(null);
   const [showDraft, setShowDraft] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
 
   useEffect(() => {
     setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
@@ -106,6 +107,44 @@ export default function AnalyzePage() {
       setError(e instanceof Error ? e.message : "分析失败，请重试");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function recognizeJDImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("请选择图片文件");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("图片不能超过 8MB，请先压缩后再上传");
+      return;
+    }
+    setError("");
+    setOcrLoading(true);
+    try {
+      const image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("图片读取失败"));
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch("/api/ocr-jd", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "图片识别失败");
+      setJd(data.text);
+      setDemoMode(false);
+      localStorage.setItem(JD_KEY, data.text);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "图片识别失败，请重试");
+    } finally {
+      setOcrLoading(false);
     }
   }
 
@@ -189,6 +228,13 @@ export default function AnalyzePage() {
               value={jd}
               onChange={(e) => setJd(e.target.value)}
             />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-gray-400 leading-5">无法复制文字？上传 JD 截图，Agent 会先 OCR，识别后仍可手动修改。</p>
+              <label className="flex-none cursor-pointer rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition-colors">
+                {ocrLoading ? "识别中…" : "上传图片识别"}
+                <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={ocrLoading} onChange={recognizeJDImage} />
+              </label>
+            </div>
           </div>
 
           {error && (

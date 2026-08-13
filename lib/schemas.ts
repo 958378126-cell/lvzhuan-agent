@@ -4,7 +4,7 @@ const shortText = (max: number) => z.string().trim().max(max);
 
 export const analysisSchema = z.object({
   score: z.coerce.number().min(0).max(100),
-  summary: shortText(80),
+  summary: shortText(300),
   strengths: z
     .array(z.object({ point: shortText(120), detail: shortText(600) }))
     .min(1)
