@@ -35,6 +35,7 @@ export default function ResumePage() {
   const [error, setError] = useState("");
 
   const [exporting, setExporting] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [templateId, setTemplateId] = useState<ResumeTemplateId>("pillar");
 
@@ -67,6 +68,35 @@ export default function ResumePage() {
       setError(e instanceof Error ? e.message : "导出失败，请重试");
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function exportPdf() {
+    if (!resumeData) return;
+    setExportingPdf(true);
+    try {
+      const res = await fetch("/api/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeData, name: "律转简历" }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "PDF 导出失败");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "律转简历.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "PDF 导出失败，请重试");
+    } finally {
+      setExportingPdf(false);
     }
   }
 
@@ -262,6 +292,14 @@ export default function ResumePage() {
                   style={{ borderColor: "#1a2744", color: "#1a2744" }}
                 >
                   {exporting ? "导出中…" : "导出 Word"}
+                </button>
+                <button
+                  onClick={exportPdf}
+                  disabled={exportingPdf}
+                  className="text-sm font-semibold px-5 py-2 rounded-lg border transition-colors disabled:opacity-50"
+                  style={{ borderColor: "#2563eb", color: "#2563eb" }}
+                >
+                  {exportingPdf ? "导出中…" : "直接生成 PDF"}
                 </button>
                 <Link
                   href="/analyze"
