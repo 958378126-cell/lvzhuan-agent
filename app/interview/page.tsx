@@ -298,7 +298,7 @@ export default function InterviewPage() {
       </nav>
 
       <div className="flex-1 overflow-y-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto flex flex-col gap-5">
+        <div className="max-w-3xl mx-auto flex flex-col gap-5">
           <div className="rounded-2xl p-6 mb-2" style={{ backgroundColor: "#1a2744" }}>
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-5 bg-blue-400" />
@@ -310,18 +310,20 @@ export default function InterviewPage() {
           </div>
 
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              {m.role === "assistant" && (
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-none mr-3 mt-1" style={{ backgroundColor: "#1a2744" }}>◎</div>
-              )}
-              <div
-                className={`max-w-lg rounded-2xl px-5 py-4 text-sm leading-7 whitespace-pre-wrap ${m.role === "user" ? "text-white rounded-br-sm" : "text-gray-800 rounded-bl-sm"}`}
-                style={{ backgroundColor: m.role === "user" ? "#1a2744" : "#ffffff", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-              >
-                {m.text}
+            <div key={i} className="flex flex-col">
+              <div className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                {m.role === "assistant" && (
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-none mr-3 mt-1" style={{ backgroundColor: "#1a2744" }}>◎</div>
+                )}
+                <div
+                  className={`max-w-2xl rounded-2xl px-5 py-4 text-sm leading-7 whitespace-pre-wrap ${m.role === "user" ? "text-white rounded-br-sm" : "text-gray-800 rounded-bl-sm"}`}
+                  style={{ backgroundColor: m.role === "user" ? "#1a2744" : "#ffffff", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                >
+                  {m.text}
+                </div>
               </div>
               {m.careerHypotheses && m.careerHypotheses.length > 0 && (
-                <div className="basis-full ml-10 mt-3 w-full max-w-2xl rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <div className="ml-10 mt-3 w-[calc(100%-2.5rem)] rounded-2xl border border-blue-100 bg-blue-50 p-4">
                   <div className="text-xs font-semibold tracking-widest uppercase text-blue-700">初步职业方向 · 待验证假设</div>
                   <p className="mt-1 text-xs leading-5 text-blue-600">这些不是最终结论，Agent 会通过后续问题验证；也可以告诉它你完全不感兴趣。</p>
                   <div className="mt-3 grid grid-cols-1 gap-3">
