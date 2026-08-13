@@ -1,220 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { requestValidatedJSON } from "@/lib/ai";
+import { DEMO_RESUME } from "@/lib/demo-data";
+import { buildResumeHTML } from "@/lib/resume-html";
+import { resumeSchema } from "@/lib/schemas";
 
-interface Experience {
-  role: string;
-  org: string;
-  dates: string;
-  location: string;
-  bullets: string[];
-}
-
-interface ResumeData {
-  name: string;
-  title: string;
-  phone: string;
-  email: string;
-  location: string;
-  linkedin: string;
-  summary: string;
-  experience: Experience[];
-  education: { degree: string; school: string; dates: string }[];
-  skills: string[];
-  certifications: string[];
-  achievements: { icon: string; title: string; desc: string }[];
-  languages: { name: string; level: string; dots: number }[];
-}
-
-function buildResumeHTML(data: ResumeData, photo?: string): string {
-  const templatePath = join(process.cwd(), "public", "template-pillar.html");
-  const template = readFileSync(templatePath, "utf-8");
-
-  const experienceHTML = data.experience
-    .map(
-      (e) => `
-      <div class="entry">
-        <div class="role">${e.role}</div>
-        <div class="org">${e.org}</div>
-        <div class="meta"><span>${e.dates}</span><span>${e.location}</span></div>
-        <ul>${e.bullets.map((b) => `<li>${b}</li>`).join("")}</ul>
-      </div>`
-    )
-    .join("");
-
-  const educationHTML = data.education
-    .map(
-      (e) => `
-      <div class="entry">
-        <div class="role">${e.degree}</div>
-        <div class="org">${e.school}</div>
-        <div class="meta"><span>${e.dates}</span></div>
-      </div>`
-    )
-    .join("");
-
-  const skillsHTML = data.skills.map((s) => `<span>${s}</span>`).join("");
-
-  const achievementsHTML = data.achievements
-    .map(
-      (a) => `
-      <div class="ach">
-        <div class="badge">${a.icon}</div>
-        <div><div class="t">${a.title}</div><div class="d">${a.desc}</div></div>
-      </div>`
-    )
-    .join("");
-
-  const languagesHTML = data.languages
-    .map(
-      (l) => `
-      <div class="lang">
-        <div class="n"><b>${l.name}</b><small>${l.level}</small></div>
-        <div class="dots">${Array.from({ length: 5 }, (_, i) =>
-          `<i${i < l.dots ? ' class="on"' : ""}></i>`
-        ).join("")}</div>
-      </div>`
-    )
-    .join("");
-
-  const photoHTML = photo
-    ? `<img class="head-photo" src="${photo}" alt="photo" />`
-    : "";
-
-  const certificationsHTML = data.certifications?.length
-    ? `<section><h2>证书 / 资质</h2><div class="pills">${data.certifications.map((c) => `<span>${c}</span>`).join("")}</div></section>`
-    : "";
-
-  const bodyContent = `
-<div class="page">
-  <header class="head">
-    <div class="head-info">
-      <h1>${data.name}</h1>
-      <div class="title">${data.title}</div>
-      <div class="contact">
-        <span>${data.phone}</span>
-        <span><a href="mailto:${data.email}">${data.email}</a></span>
-        <span>${data.location}</span>
-        <span><a href="#">${data.linkedin}</a></span>
-      </div>
-    </div>
-    ${photoHTML}
-  </header>
-  <div class="cols">
-    <div class="main">
-      <section><h2>个人简介</h2><p class="summary">${data.summary}</p></section>
-      <section><h2>工作经历</h2>${experienceHTML}</section>
-      <section><h2>教育背景</h2>${educationHTML}</section>
-    </div>
-    <aside class="aside">
-      <section><h2>技能</h2><div class="pills">${skillsHTML}</div></section>
-      ${certificationsHTML}
-      <section><h2>核心成就</h2>${achievementsHTML}</section>
-      <section><h2>语言</h2>${languagesHTML}</section>
-    </aside>
-  </div>
-</div>`;
-
-  return template.replace(/<body>[\s\S]*<\/body>/, `<body>${bodyContent}</body>`);
-}
-
-const systemPrompt = `你是一名专业的简历撰写顾问，擅长帮助法律背景人士转型 legaltech / PM 岗位。
-你的任务是根据用户的能力档案和目标 JD，生成一份结构化的简历数据（JSON 格式）。
-如果提供了"修改指令"和"当前简历"，则在当前简历基础上按指令调整，保留未涉及的部分不变。
-
-严格规则：
-1. 只使用用户档案中真实存在的经历和能力，绝不杜撰。
-2. 【重要】教育经历（大学、研究生、MBA、在校学习等）必须且只能放在 education 字段，绝对不能出现在 experience 工作经历里。experience 只放真实的工作/实习经历。
-3. 【重要】日期必须严格使用档案中明确写明的时间，不得推断或捏造。如果档案中没有明确时间，用"—"代替，不要填写任何猜测的年份。
-4. 用 JD 的语言和关键词"翻译"用户的法律经历，让 PM 招聘方看得懂。
-5. 每条 bullet 要有具体动作 + 结果，避免空洞描述。
-6. summary 直接点明转型方向和核心优势，不超过 3 句话。
-7. 【重要】仔细对照 JD 的每一项要求，将档案中符合的资格证书和考试成绩（如法律职业资格证/法考、英语四六级、PMP、律师执照等）全部填入 certifications 字段，这是关键加分项，不能遗漏。
-
-只输出合法 JSON，不要有任何解释文字，格式如下：
-{
-  "name": "姓名",
-  "title": "目标职位",
-  "phone": "电话",
-  "email": "邮箱",
-  "location": "城市",
-  "linkedin": "LinkedIn 或留空",
-  "summary": "个人简介",
-  "experience": [
-    {
-      "role": "职位名称",
-      "org": "公司/机构",
-      "dates": "2020 — 2024",
-      "location": "城市",
-      "bullets": ["成就1", "成就2", "成就3"]
-    }
-  ],
-  "education": [
-    { "degree": "学位 · 专业", "school": "学校", "dates": "2015 — 2018" }
-  ],
-  "skills": ["技能1", "技能2"],
-  "certifications": ["法律职业资格证（法考）A证", "英语六级 xxx分"],
-  "achievements": [
-    { "icon": "★", "title": "成就标题", "desc": "一句话描述" }
-  ],
-  "languages": [
-    { "name": "普通话", "level": "母语", "dots": 5 },
-    { "name": "English", "level": "专业", "dots": 4 }
-  ]
-}`;
+const systemPrompt = `你是一名专业简历顾问，帮助法律背景人士转型 legaltech / PM。
+只使用档案中真实存在的信息，绝不杜撰。教育经历只能放 education，工作/实习才放 experience。档案无明确日期则用“—”。用 JD 语言翻译真实经历，每条 bullet 使用动作和真实结果，不能创造数字。证书不得遗漏。
+输出字段：name,title,phone,email,location,linkedin,summary,experience[{role,org,dates,location,bullets}],education[{degree,school,dates}],skills,certifications,achievements[{icon,title,desc}],languages[{name,level,dots}]。只返回合法 JSON。`;
 
 export async function POST(req: NextRequest) {
-  const { jd, profile, instruction, previousResume, photo } = await req.json();
-
-  if (!jd?.trim() || !profile?.trim()) {
-    return NextResponse.json({ error: "缺少 jd 或 profile" }, { status: 400 });
-  }
-
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "未配置 DEEPSEEK_API_KEY" }, { status: 500 });
-  }
-
-  const client = new OpenAI({
-    apiKey,
-    baseURL: "https://api.deepseek.com",
-  });
-
-  let message;
   try {
-    message = await client.chat.completions.create({
-      model: "deepseek-chat",
-      max_tokens: 4096,
+    const { jd, profile, instruction, previousResume, photo, demo } = await req.json();
+    if (demo) {
+      const data = resumeSchema.parse(DEMO_RESUME);
+      return NextResponse.json({ html: buildResumeHTML(data), resumeData: data });
+    }
+    if (!jd?.trim() || !profile?.trim()) {
+      return NextResponse.json({ error: "缺少 jd 或 profile" }, { status: 400 });
+    }
+    if (jd.length > 30_000 || profile.length > 40_000) {
+      return NextResponse.json({ error: "输入内容过长，请精简后重试" }, { status: 413 });
+    }
+
+    const userPrompt = instruction && previousResume
+      ? `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n当前简历 JSON：\n${JSON.stringify(previousResume)}\n\n修改指令：${instruction}\n\n保留未涉及部分，输出完整简历 JSON。`
+      : `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n生成简历 JSON。`;
+    const data = await requestValidatedJSON({
+      schema: resumeSchema,
+      maxTokens: 4096,
       messages: [
         { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: instruction && previousResume
-            ? `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n当前简历 JSON：\n${JSON.stringify(previousResume)}\n\n修改指令：${instruction}\n\n请按指令调整并输出完整简历 JSON。`
-            : `能力档案：\n${profile}\n\n目标 JD：\n${jd}\n\n请生成简历 JSON。`,
-        },
+        { role: "user", content: userPrompt },
       ],
     });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 502 });
+
+    return NextResponse.json({ html: buildResumeHTML(data, photo), resumeData: data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "生成失败";
+    return NextResponse.json({ error: message }, { status: 502 });
   }
-
-  const raw = message.choices[0]?.message?.content ?? "";
-
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    return NextResponse.json({ error: "模型返回格式有误，请重试" }, { status: 500 });
-  }
-
-  let data: ResumeData;
-  try {
-    data = JSON.parse(jsonMatch[0]);
-  } catch {
-    return NextResponse.json({ error: "JSON 解析失败，请重试" }, { status: 500 });
-  }
-
-  const html = buildResumeHTML(data, photo);
-  return NextResponse.json({ html, resumeData: data });
 }

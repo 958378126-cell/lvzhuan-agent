@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { DEMO_JD, DEMO_PROFILE } from "@/lib/demo-data";
 
 const PROFILE_KEY = "lvzhuan_profile";
+const JD_KEY = "lvzhuan_jd";
 
 interface Strength { point: string; detail: string }
 interface Gap { point: string; detail: string }
@@ -29,9 +31,7 @@ interface EmailDraft {
 
 export default function AnalyzePage() {
   const [jd, setJd] = useState("");
-  const [profile, setProfile] = useState(() =>
-    typeof window !== "undefined" ? localStorage.getItem(PROFILE_KEY) ?? "" : ""
-  );
+  const [profile, setProfile] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
@@ -39,6 +39,12 @@ export default function AnalyzePage() {
   const [draftLoading, setDraftLoading] = useState(false);
   const [draft, setDraft] = useState<EmailDraft | null>(null);
   const [showDraft, setShowDraft] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+
+  useEffect(() => {
+    setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
+    setJd(localStorage.getItem(JD_KEY) ?? "");
+  }, []);
 
   async function draftEmail() {
     setDraftLoading(true);
@@ -48,7 +54,7 @@ export default function AnalyzePage() {
       const res = await fetch("/api/draft-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd, profile }),
+        body: JSON.stringify({ jd, profile, demo: demoMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "生成失败");
@@ -76,10 +82,12 @@ export default function AnalyzePage() {
     setLoading(true);
     setResult(null);
     try {
+      localStorage.setItem(PROFILE_KEY, profile);
+      localStorage.setItem(JD_KEY, jd);
       const res = await fetch("/api/analyze-jd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd, profile }),
+        body: JSON.stringify({ jd, profile, demo: demoMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "分析失败");
@@ -89,6 +97,16 @@ export default function AnalyzePage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function loadDemo() {
+    setProfile(DEMO_PROFILE);
+    setJd(DEMO_JD);
+    setDemoMode(true);
+    setResult(null);
+    setError("");
+    localStorage.setItem(PROFILE_KEY, DEMO_PROFILE);
+    localStorage.setItem(JD_KEY, DEMO_JD);
   }
 
   return (
@@ -103,9 +121,17 @@ export default function AnalyzePage() {
         <span className="text-blue-300 text-sm">JD 匹配分析</span>
       </nav>
 
-      <div className="flex flex-1 gap-6 p-8 max-w-7xl mx-auto w-full">
+      <div className="flex flex-1 flex-col lg:flex-row gap-6 p-4 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
         {/* Left: inputs */}
-        <div className="flex flex-col gap-6 w-96 flex-none">
+        <div className="flex flex-col gap-6 w-full lg:w-96 flex-none min-w-0">
+          <button
+            onClick={loadDemo}
+            className="w-full h-11 rounded-xl border text-sm font-semibold bg-white"
+            style={{ borderColor: "#2563eb", color: "#2563eb" }}
+          >
+            加载离线演示数据
+          </button>
+          {demoMode && <p className="text-xs text-blue-600 -mt-4">离线演示已启用，不调用外部 AI 服务。</p>}
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
@@ -166,7 +192,7 @@ export default function AnalyzePage() {
               className="w-full h-12 rounded-xl text-white text-sm font-semibold transition-opacity disabled:opacity-60"
               style={{ backgroundColor: "#2563eb" }}
             >
-              {draftLoading ? "生成投递邮件中…" : "一键投递 →"}
+              {draftLoading ? "生成投递邮件中…" : "生成投递邮件 →"}
             </button>
           )}
         </div>
@@ -212,7 +238,7 @@ export default function AnalyzePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Strengths */}
                 <div className="rounded-2xl bg-white p-6 shadow-sm">
                   <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "#16a34a" }}>
@@ -297,10 +323,11 @@ export default function AnalyzePage() {
                       <p className="text-xs text-gray-400">确认内容无误后点击发送，将通过你的默认邮件客户端投递。</p>
                       <button
                         onClick={sendEmail}
-                        className="w-full h-11 rounded-xl text-white text-sm font-semibold"
+                        disabled={!draft.email}
+                        className="w-full h-11 rounded-xl text-white text-sm font-semibold disabled:opacity-40"
                         style={{ backgroundColor: "#2563eb" }}
                       >
-                        确认发送 →
+                        在默认邮件客户端中打开 →
                       </button>
                     </div>
                   ) : null}

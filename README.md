@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 律转 Agent
 
-## Getting Started
+面向法律从业者转型 Legaltech / 产品岗位的求职工作流原型：简历读取、深度访谈、能力档案、JD 匹配、定制简历和投递邮件草稿。
 
-First, run the development server:
+## 本地运行
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 <http://localhost:3000>。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+统一 AI 配置：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `AI_API_KEY`：必填；不配置时仍可使用页面上的离线演示。
+- `AI_BASE_URL`：OpenAI 兼容接口地址，例如 `https://api.deepseek.com`。
+- `AI_MODEL`：模型名称，例如 `deepseek-chat`。
 
-## Learn More
+跨设备档案分享依赖 Upstash Redis。未配置 Redis 时档案只保存在当前浏览器，访谈、JD 分析、简历生成等主流程不受影响。
 
-To learn more about Next.js, take a look at the following resources:
+## 路演离线模式
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+访谈、JD 分析和简历生成页都提供离线演示入口。离线模式使用内置脱敏示例，不依赖外部 AI 或 Redis，适合网络不稳定时演示完整流程。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 验证
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm audit
+```

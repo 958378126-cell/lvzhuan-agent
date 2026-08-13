@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { requestValidatedJSON } from "@/lib/ai";
+import { DEMO_PROFILE } from "@/lib/demo-data";
+import { interviewResponseSchema } from "@/lib/schemas";
 
 interface Message {
   role: "assistant" | "user";
@@ -17,11 +19,11 @@ const SYSTEM = `你是一名专业的职业转型顾问，专门帮助法律背�
 4. 按顺序推进：教育背景（学校/专业/学位） → 工作经历 → 项目/案件亮点 → 跨部门协作 → 数据/结果 → 技能工具 → 职业目标。
 5. 大约 10-15 轮对话后，判断信息已足够，生成能力档案并结束。
 
-结束时，输出如下格式（严格遵守，不要有多余文字）：
+每一轮都只输出合法 JSON：
+未结束时：{"done":false,"reply":"本轮只问一个问题","profile":""}
+信息足够时：{"done":true,"reply":"告诉用户档案已生成，可以继续分析 JD 或生成简历","profile":"完整能力档案"}
 
-INTERVIEW_DONE
-REPLY: [对用户说的结束语，告诉他档案已生成，可以去生成简历了]
-PROFILE:
+完成时 profile 必须严格使用以下 Markdown 结构：
 # 能力档案
 
 ## 基本信息
@@ -45,22 +47,21 @@ PROFILE:
 [10-15 个与目标岗位相关的关键词，逗号分隔]`;
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ error: "未配置 DEEPSEEK_API_KEY" }, { status: 503 });
+  const { messages, resumeContext, demo }: { messages: Message[]; resumeContext?: string; demo?: boolean } = await req.json();
+  if (demo) {
+    return NextResponse.json({
+      done: true,
+      reply: "离线演示档案已生成，可以继续体验 JD 分析和简历生成。",
+      profile: DEMO_PROFILE,
+    });
   }
-
-  const { messages, resumeContext }: { messages: Message[]; resumeContext?: string } = await req.json();
+  if (!Array.isArray(messages) || messages.length > 40 || (resumeContext?.length ?? 0) > 50_000) {
+    return NextResponse.json({ error: "访谈内容过长，请重新开始或精简简历" }, { status: 413 });
+  }
 
   const system = resumeContext
     ? `${SYSTEM}\n\n---\n用户已上传简历，原文如下：\n\n${resumeContext}\n\n请基于这份简历开始访谈。先用一两句话确认你已读懂简历的大致背景（包括学历和工作经历），然后直接提出第一个针对性的深挖问题——聚焦于简历中描述模糊、最有潜力挖掘 PM 能力的那段经历。`
     : SYSTEM;
-
-  const client = new OpenAI({
-    apiKey,
-    baseURL: "https://api.deepseek.com",
-  });
 
   const chatMessages = messages
     .filter((m) => m.role === "user" || m.role === "assistant")
@@ -69,29 +70,15 @@ export async function POST(req: NextRequest) {
       content: m.text,
     }));
 
-  let response;
   try {
-    response = await client.chat.completions.create({
-      model: "deepseek-chat",
-      max_tokens: 2048,
+    const response = await requestValidatedJSON({
+      schema: interviewResponseSchema,
+      maxTokens: 2048,
       messages: [{ role: "system", content: system }, ...chatMessages],
     });
+    return NextResponse.json(response);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 502 });
   }
-
-  const raw = response.choices[0]?.message?.content ?? "";
-
-  if (raw.includes("INTERVIEW_DONE")) {
-    const replyMatch = raw.match(/REPLY:\s*([\s\S]*?)(?=\nPROFILE:)/);
-    const profileMatch = raw.match(/PROFILE:\s*([\s\S]*)/);
-    return NextResponse.json({
-      done: true,
-      reply: replyMatch?.[1]?.trim() ?? "访谈完成，你的能力档案已生成。",
-      profile: profileMatch?.[1]?.trim() ?? "",
-    });
-  }
-
-  return NextResponse.json({ done: false, reply: raw });
 }

@@ -55,7 +55,7 @@ export default function Home() {
           </span>
         </h1>
         <p className="mt-8 text-blue-200 text-base sm:text-lg max-w-xl leading-8">
-          不是聊天框，不是模板生成器。<br className="hidden sm:block" />
+          不止是聊天框，也不止是模板生成器。<br className="hidden sm:block" />
           律转会记住你的能力档案，在每一步求职任务里主动替你思考和执行。
         </p>
         <Link
@@ -114,8 +114,8 @@ export default function Home() {
                 },
                 {
                   icon: "◎",
-                  title: "执行任务，不只给建议",
-                  desc: "Agent 能力三：执行。从生成定制简历、分析 JD 匹配度，到起草投递邮件，Agent 直接完成动作，你只需确认或调整。",
+                  title: "生成成果，不只给建议",
+                  desc: "Agent 能力三：执行。从生成定制简历、分析 JD 匹配度，到起草可确认的投递邮件，Agent 直接产出成果，你只需确认或调整。",
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4 items-start">
@@ -299,8 +299,8 @@ export default function Home() {
                 status: "已上线",
                 color: "#22c55e",
                 icon: "◈",
-                title: "一键投递",
-                desc: "Agent 从 JD 中识别投递邮箱，自动生成邮件草稿，人工预览确认后一键发送。在 JD 匹配分析页完成分析后即可使用。",
+                title: "投递邮件草稿",
+                desc: "Agent 从 JD 中识别投递邮箱并生成邮件草稿，人工确认后唤起你的默认邮件客户端完成投递。",
               },
               {
                 status: "规划中",
@@ -358,7 +358,7 @@ export default function Home() {
           开始访谈
         </Link>
         <p className="mt-4 text-blue-300 text-sm">
-          约 10 分钟 · 数据存在你自己手里
+          约 10 分钟 · 档案默认保存在本浏览器
         </p>
       </section>
 

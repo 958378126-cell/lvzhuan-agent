@@ -8,6 +8,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "未收到文件" }, { status: 400 });
   }
 
+  if (file.size > 5 * 1024 * 1024) {
+    return NextResponse.json({ error: "文件不能超过 5MB" }, { status: 413 });
+  }
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   const name = file.name.toLowerCase();
@@ -15,12 +19,12 @@ export async function POST(req: NextRequest) {
   try {
     let text = "";
 
-    if (name.endsWith(".docx") || name.endsWith(".doc")) {
+    if (name.endsWith(".docx")) {
       const mammoth = await import("mammoth");
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else {
-      return NextResponse.json({ error: "仅支持 Word 文件（.docx / .doc）" }, { status: 400 });
+      return NextResponse.json({ error: "目前仅支持 .docx 文件，也可以直接粘贴简历文字" }, { status: 400 });
     }
 
     text = text.replace(/\s+/g, " ").trim();

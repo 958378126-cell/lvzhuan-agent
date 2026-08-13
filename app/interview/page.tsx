@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { DEMO_RESUME_TEXT } from "@/lib/demo-data";
 
 interface Message {
   role: "assistant" | "user";
@@ -27,6 +28,8 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [cloudSaving, setCloudSaving] = useState(false);
+  const [cloudError, setCloudError] = useState("");
   const [copying, setCopying] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -118,18 +121,11 @@ export default function InterviewPage() {
         body: JSON.stringify({ messages: updated, resumeContext: resumeText }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "访谈失败");
       if (data.done) {
         setMessages((m) => [...m, { role: "assistant", text: data.reply }]);
         localStorage.setItem(PROFILE_KEY, data.profile ?? "");
         setDone(true);
-        fetch("/api/profile/save", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profile: data.profile ?? "" }),
-        })
-          .then((r) => r.json())
-          .then((d) => { if (d.id) setProfileId(d.id); })
-          .catch(() => {});
       } else {
         setMessages((m) => [...m, { role: "assistant", text: data.reply }]);
       }
@@ -138,6 +134,27 @@ export default function InterviewPage() {
     } finally {
       setLoading(false);
       textareaRef.current?.focus();
+    }
+  }
+
+  async function createCloudLink() {
+    const profile = localStorage.getItem(PROFILE_KEY) ?? "";
+    if (!profile || cloudSaving) return;
+    setCloudSaving(true);
+    setCloudError("");
+    try {
+      const res = await fetch("/api/profile/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "链接生成失败");
+      setProfileId(data.id);
+    } catch (error) {
+      setCloudError(error instanceof Error ? error.message : "链接生成失败");
+    } finally {
+      setCloudSaving(false);
     }
   }
 
@@ -155,7 +172,32 @@ export default function InterviewPage() {
     setResumeText("");
     setPasteText("");
     setDone(false);
+    setProfileId(null);
+    setCloudError("");
     setStep("upload");
+  }
+
+  async function startDemo() {
+    setUploading(true);
+    setUploadError("");
+    try {
+      const res = await fetch("/api/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [], resumeContext: DEMO_RESUME_TEXT, demo: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "演示档案生成失败");
+      localStorage.setItem(PROFILE_KEY, data.profile);
+      setResumeText(DEMO_RESUME_TEXT);
+      setMessages([{ role: "assistant", text: data.reply }]);
+      setDone(true);
+      setStep("chat");
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "演示启动失败");
+    } finally {
+      setUploading(false);
+    }
   }
 
   if (step === "upload") {
@@ -189,12 +231,12 @@ export default function InterviewPage() {
               <span className="text-3xl" style={{ color: "#1a2744" }}>◎</span>
               <div>
                 <p className="text-sm font-semibold" style={{ color: "#1a2744" }}>拖拽文件到这里，或点击上传</p>
-                <p className="text-xs text-gray-400 mt-1">支持 Word 文件（.docx / .doc）</p>
+                <p className="text-xs text-gray-400 mt-1">支持 Word 文件（.docx，最大 5MB）</p>
               </div>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".doc,.docx"
+                accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) parseFile(f); }}
               />
@@ -227,6 +269,14 @@ export default function InterviewPage() {
               style={{ backgroundColor: "#1a2744" }}
             >
               {uploading ? "Agent 正在读取简历…" : "开始针对性访谈 →"}
+            </button>
+            <button
+              onClick={startDemo}
+              disabled={uploading}
+              className="w-full h-12 rounded-xl border text-sm font-semibold bg-white disabled:opacity-40"
+              style={{ borderColor: "#2563eb", color: "#2563eb" }}
+            >
+              直接体验离线演示
             </button>
           </div>
         </div>
@@ -287,6 +337,20 @@ export default function InterviewPage() {
             <div className="rounded-2xl p-6 text-center" style={{ backgroundColor: "#1a2744" }}>
               <p className="text-white font-semibold mb-2">能力档案已生成</p>
               <p className="text-blue-200 text-sm mb-4">档案已保存到本地，现在可以去分析 JD 或生成定制简历了。</p>
+
+              {!profileId && (
+                <div className="mb-5">
+                  <button
+                    onClick={createCloudLink}
+                    disabled={cloudSaving}
+                    className="px-4 py-2 rounded-lg border border-blue-400 text-blue-200 text-xs font-semibold disabled:opacity-40"
+                  >
+                    {cloudSaving ? "生成中…" : "生成跨设备档案链接（保存 90 天）"}
+                  </button>
+                  <p className="text-blue-400 text-xs mt-2">仅在你主动点击后上传；获得链接的人可以查看这份档案。</p>
+                  {cloudError && <p className="text-amber-300 text-xs mt-2">{cloudError}</p>}
+                </div>
+              )}
 
               {profileId && (
                 <div className="mb-5 rounded-xl p-4" style={{ backgroundColor: "#0f1a35" }}>
