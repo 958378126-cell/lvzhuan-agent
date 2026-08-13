@@ -33,6 +33,12 @@ export const interviewPrepSchema = z.object({
   missingStories: z.array(shortText(500)).max(8),
 });
 
+export const interviewAnswerSchema = z.object({
+  answer: shortText(1800),
+  evidenceUsed: z.array(shortText(700)).max(5),
+  followUps: z.array(shortText(300)).max(4),
+});
+
 export const analysisSchema = z.object({
   score: z.coerce.number().min(0).max(100),
   scoreRange: shortText(40).default(""),
