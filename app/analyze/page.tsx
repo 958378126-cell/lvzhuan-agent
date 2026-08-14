@@ -11,7 +11,7 @@ const RESUME_CTX_KEY = "lvzhuan_resume_context";
 interface Strength { point: string; detail: string }
 interface Gap { point: string; detail: string }
 interface Suggestion { action: string; priority: "high" | "medium" | "low" }
-interface VerifiedFact { category: "education" | "certification" | "work" | "internship" | "project" | "skill"; item: string; evidence: string }
+interface VerifiedFact { category: string; item: string; evidence: string }
 interface Requirement { requirement: string; status: "met" | "partial" | "gap"; tier: "must" | "nice"; matchScore: number; evidence: string; action: string }
 interface Translation { source: string; translated: string; targetRequirement: string; matchType: "direct" | "transferable" | "adjacent" }
 interface JDDecode { role: string; level: string; responsibilities: string[]; mustHaves: string[]; niceToHaves: string[]; hiddenSignals: string[]; assumptions: string[] }
