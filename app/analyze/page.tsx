@@ -57,6 +57,7 @@ export default function AnalyzePage() {
   const [draftLoading, setDraftLoading] = useState(false);
   const [draft, setDraft] = useState<EmailDraft | null>(null);
   const [showDraft, setShowDraft] = useState(false);
+  const [copiedDraft, setCopiedDraft] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
 
@@ -74,7 +75,7 @@ export default function AnalyzePage() {
       const res = await fetch("/api/draft-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd, profile, resumeContext, demo: demoMode }),
+        body: JSON.stringify({ jd, profile, resumeContext, analysis: result, demo: demoMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "生成失败");
@@ -88,9 +89,24 @@ export default function AnalyzePage() {
   }
 
   function sendEmail() {
-    if (!draft) return;
+    if (!draft?.email.trim()) {
+      setError("请先填写收件人邮箱；如果 JD 没有公开邮箱，可以手动填入招聘方邮箱");
+      return;
+    }
     const mailto = `mailto:${encodeURIComponent(draft.email)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`;
-    window.open(mailto, "_blank");
+    window.location.href = mailto;
+  }
+
+  async function copyDraft() {
+    if (!draft) return;
+    const text = `收件人：${draft.email}\n主题：${draft.subject}\n\n${draft.body}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedDraft(true);
+      window.setTimeout(() => setCopiedDraft(false), 1800);
+    } catch {
+      setError("复制失败，请手动选中邮件内容复制");
+    }
   }
 
   async function analyze() {
@@ -504,27 +520,57 @@ export default function AnalyzePage() {
                     <div className="flex flex-col gap-4">
                       <div>
                         <div className="text-xs text-gray-400 mb-1">收件人</div>
-                        <div className="text-sm font-medium text-gray-800">
-                          {draft.email || <span className="text-amber-500">JD 中未找到投递邮箱，请手动填写</span>}
-                        </div>
+                        <input
+                          value={draft.email}
+                          onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                          placeholder="JD 未提供邮箱，请手动填写"
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-400"
+                        />
                       </div>
                       <div>
                         <div className="text-xs text-gray-400 mb-1">主题</div>
-                        <div className="text-sm font-medium text-gray-800">{draft.subject}</div>
+                        <input
+                          value={draft.subject}
+                          onChange={(e) => setDraft({ ...draft, subject: e.target.value })}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-800 outline-none focus:border-blue-400"
+                        />
                       </div>
                       <div>
                         <div className="text-xs text-gray-400 mb-1">正文</div>
-                        <div className="text-sm text-gray-700 leading-7 whitespace-pre-wrap bg-gray-50 rounded-xl p-4">{draft.body}</div>
+                        <textarea
+                          value={draft.body}
+                          onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+                          rows={9}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm leading-7 text-gray-700 outline-none focus:border-blue-400"
+                        />
                       </div>
-                      <p className="text-xs text-gray-400">确认内容无误后点击发送，将通过你的默认邮件客户端投递。</p>
-                      <button
-                        onClick={sendEmail}
-                        disabled={!draft.email}
-                        className="w-full h-11 rounded-xl text-white text-sm font-semibold disabled:opacity-40"
-                        style={{ backgroundColor: "#2563eb" }}
-                      >
-                        在默认邮件客户端中打开 →
-                      </button>
+                      <div className="rounded-xl bg-blue-50 p-4 text-xs leading-6 text-blue-800">
+                        <div className="font-semibold">建议投递步骤</div>
+                        <div>1. 先到“生成定制简历”下载 PDF；2. 检查并修改这封邮件；3. 打开邮件客户端后，手动添加 PDF 附件并确认发送。</div>
+                        <div className="mt-1 text-blue-600">浏览器不会在未经确认的情况下自动发送邮件，也不能通过 mailto 自动添加附件。</div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <Link
+                          href="/resume"
+                          className="flex h-11 items-center justify-center rounded-xl border border-[#1a2744] text-sm font-semibold text-[#1a2744]"
+                        >
+                          去下载 PDF 简历
+                        </Link>
+                        <button
+                          onClick={copyDraft}
+                          className="h-11 rounded-xl border border-blue-300 text-sm font-semibold text-blue-600"
+                        >
+                          {copiedDraft ? "已复制" : "复制邮件内容"}
+                        </button>
+                        <button
+                          onClick={sendEmail}
+                          disabled={!draft.email.trim()}
+                          className="h-11 rounded-xl text-white text-sm font-semibold disabled:opacity-40"
+                          style={{ backgroundColor: "#2563eb" }}
+                        >
+                          打开邮箱确认 →
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </div>
