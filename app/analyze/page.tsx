@@ -7,6 +7,7 @@ import { DEMO_JD, DEMO_PROFILE } from "@/lib/demo-data";
 const PROFILE_KEY = "lvzhuan_profile";
 const JD_KEY = "lvzhuan_jd";
 const RESUME_CTX_KEY = "lvzhuan_resume_context";
+const ANALYSIS_KEY = "lvzhuan_analysis_result";
 
 interface Strength { point: string; detail: string }
 interface Gap { point: string; detail: string }
@@ -66,6 +67,14 @@ export default function AnalyzePage() {
     setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
     setJd(localStorage.getItem(JD_KEY) ?? "");
     setResumeContext(localStorage.getItem(RESUME_CTX_KEY) ?? "");
+    const savedAnalysis = localStorage.getItem(ANALYSIS_KEY);
+    if (savedAnalysis) {
+      try {
+        setResult(JSON.parse(savedAnalysis) as AnalysisResult);
+      } catch {
+        localStorage.removeItem(ANALYSIS_KEY);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -125,6 +134,7 @@ export default function AnalyzePage() {
     setError("");
     setLoading(true);
     setResult(null);
+    localStorage.removeItem(ANALYSIS_KEY);
     try {
       localStorage.setItem(PROFILE_KEY, profile);
       localStorage.setItem(JD_KEY, jd);
@@ -137,6 +147,7 @@ export default function AnalyzePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "分析失败");
       setResult(data);
+      localStorage.setItem(ANALYSIS_KEY, JSON.stringify(data));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "分析失败，请重试");
     } finally {
@@ -188,6 +199,7 @@ export default function AnalyzePage() {
     setResumeContext("");
     setDemoMode(true);
     setResult(null);
+    localStorage.removeItem(ANALYSIS_KEY);
     setError("");
     localStorage.setItem(PROFILE_KEY, DEMO_PROFILE);
     localStorage.setItem(JD_KEY, DEMO_JD);
