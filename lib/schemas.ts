@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// 事实类别来自模型对用户履历的语义理解，允许出现 publication、award 等
+// 合理扩展，避免一个新类别让整次 JD 分析失败。
+const factCategorySchema = z.string().trim().min(1).max(40);
+
 const shortText = (max: number) => z.string().trim().max(max);
 
 // Models occasionally collapse a one-item evidence list into a plain string.
@@ -97,7 +101,7 @@ export const analysisSchema = z.object({
   keywords: z.array(shortText(50)).min(1).max(20),
   verifiedFacts: z.array(
     z.object({
-      category: z.enum(["education", "certification", "work", "internship", "project", "skill"]),
+      category: factCategorySchema,
       item: shortText(300),
       evidence: shortText(600),
     })
@@ -125,7 +129,7 @@ export const analysisSchema = z.object({
 export const factInventorySchema = z.object({
   facts: z.array(
     z.object({
-      category: z.enum(["education", "certification", "work", "internship", "project", "skill"]),
+      category: factCategorySchema,
       item: shortText(500),
       evidence: shortText(1000),
     })
