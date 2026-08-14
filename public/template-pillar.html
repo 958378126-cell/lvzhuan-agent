@@ -14,8 +14,13 @@
   :root { --accent: #2d6cdf; --ink: #1a1a1a; --muted: #6a6a6a; --rule: #1a1a1a; }
   @page { size: A4; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Helvetica Neue", Arial, sans-serif; color: var(--ink); font-size: 10pt; line-height: 1.45; }
-  .page { width: 210mm; min-height: 297mm; padding: 14mm 15mm; margin: 0 auto; }
+  html, body { width: 210mm; min-height: 297mm; }
+  body { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif; color: var(--ink); font-size: 10pt; line-height: 1.45; background: #fff; }
+  .page { width: 210mm; min-height: 297mm; padding: 14mm 15mm; margin: 0 auto; transform-origin: top left; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; overflow: hidden; }
+    .page { margin: 0; }
+  }
   /* header */
   .head { display: flex; justify-content: space-between; align-items: flex-start; }
   .head-info { flex: 1; min-width: 0; }

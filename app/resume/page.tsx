@@ -78,7 +78,7 @@ export default function ResumePage() {
       const res = await fetch("/api/export-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeData, name: "律转简历" }),
+        body: JSON.stringify({ resumeData, name: "律转简历", templateId, photo: photo || undefined }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -313,7 +313,7 @@ export default function ResumePage() {
               <div className="flex-1 rounded-2xl overflow-hidden shadow-sm bg-white">
                 <iframe
                   srcDoc={html}
-                  sandbox=""
+                  sandbox="allow-scripts"
                   className="w-full h-full min-h-[700px]"
                   title="简历预览"
                 />

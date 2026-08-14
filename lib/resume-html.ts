@@ -67,7 +67,25 @@ export function buildResumeHTML(data: ResumeData, photo?: string, templateId: Re
     <header class="head"><div class="head-info"><h1>${escapeHTML(data.name)}</h1><div class="title">${escapeHTML(data.title)}</div><div class="contact"><span>${escapeHTML(data.phone)}</span><span>${escapeHTML(data.email)}</span><span>${escapeHTML(data.location)}</span>${linkedinHTML}</div></div>${photoHTML}</header>
     <div class="cols"><div class="main"><section><h2>个人简介</h2><p class="summary">${escapeHTML(data.summary)}</p></section><section><h2>工作经历</h2>${experienceHTML}</section><section><h2>教育背景</h2>${educationHTML}</section></div>
     <aside class="aside"><section><h2>技能</h2><div class="pills">${skillsHTML}</div></section>${certificationsHTML}<section><h2>核心成就</h2>${achievementsHTML}</section><section><h2>语言</h2>${languagesHTML}</section></aside></div>
-  </div>`;
+  </div><script>
+    (() => {
+      const page = document.querySelector('.page');
+      const maxHeight = 1122.5;
+      if (!page) return;
+      const fit = () => {
+        page.style.transform = '';
+        page.style.width = '';
+        const naturalHeight = page.scrollHeight;
+        if (naturalHeight <= maxHeight) return;
+        const scale = Math.max(0.62, maxHeight / naturalHeight);
+        page.style.transform = 'scale(' + scale + ')';
+        page.style.width = (100 / scale) + '%';
+      };
+      window.__fitResumePage = fit;
+      if (document.fonts?.ready) document.fonts.ready.then(fit); else fit();
+      window.addEventListener('load', fit, { once: true });
+    })();
+  </script>`;
 
   return template.replace(/<body>[\s\S]*<\/body>/, `<body>${bodyContent}</body>`);
 }
