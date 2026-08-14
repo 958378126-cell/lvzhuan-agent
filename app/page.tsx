@@ -18,8 +18,8 @@ export default function Home() {
           <a href="#how" className="text-sm text-blue-200 hover:text-white transition-colors">
             如何运作
           </a>
-          <a href="#steps" className="text-sm text-blue-200 hover:text-white transition-colors">
-            使用步骤
+          <a href="#how" className="text-sm text-blue-200 hover:text-white transition-colors">
+            产品流程
           </a>
         </div>
         <Link
@@ -55,7 +55,7 @@ export default function Home() {
           </span>
         </h1>
         <p className="mt-8 text-blue-200 text-base sm:text-lg max-w-xl leading-8">
-          不是聊天框，不是模板生成器。<br className="hidden sm:block" />
+          不止是聊天框，也不止是模板生成器。<br className="hidden sm:block" />
           律转会记住你的能力档案，在每一步求职任务里主动替你思考和执行。
         </p>
         <Link
@@ -109,13 +109,13 @@ export default function Home() {
                 },
                 {
                   icon: "◈",
-                  title: "记住你，跨任务复用",
-                  desc: "Agent 能力二：记忆。访谈产出的《能力档案》被持久存储，成为简历生成、JD 匹配、邮件投递的唯一事实源——填一次，处处复用。",
+                  title: "事实主库，跨任务复用",
+                  desc: "Agent 能力二：记忆与证据。访谈产出的能力档案保留证书、教育、工作和项目事实，成为 JD 匹配、简历、面试和邮件的共同底座。",
                 },
                 {
                   icon: "◎",
-                  title: "执行任务，不只给建议",
-                  desc: "Agent 能力三：执行。从生成定制简历、分析 JD 匹配度，到起草投递邮件，Agent 直接完成动作，你只需确认或调整。",
+                  title: "从匹配到交付，闭环完成",
+                  desc: "Agent 能力三：执行。从 OCR 识别 JD、逐条匹配证据，到生成 A4 PDF 简历、面试回答和可确认的投递邮件。",
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4 items-start">
@@ -157,8 +157,8 @@ export default function Home() {
               },
               {
                 quote: "生成的简历跟我以前写的完全不同，它会用岗位的语言讲我的经历，不是把我写的东西重新排列一下。",
-                name: "测试用户",
-                role: "律所律师 · 探索 PM 方向",
+                name: "Linda",
+                role: "律所律师 · 探索 Legaltech / 产品方向",
               },
             ].map((item, i) => (
               <div key={i} className="rounded-2xl bg-white p-8 shadow-sm flex flex-col gap-6">
@@ -203,47 +203,54 @@ export default function Home() {
             className="text-4xl sm:text-5xl font-bold text-[#1a2744] leading-tight mb-16"
             style={{ fontFamily: "var(--font-serif)" }}
           >
-            四个步骤。
+            五个步骤。
             <br />
             <span className="italic font-normal text-[#6b7a99]">
-              一份专属于你的能力档案。
+              从经历输入，到求职交付。
             </span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {[
               {
                 num: "01",
                 icon: "◉",
-                title: "对齐访谈",
-                desc: "Agent 逐问逼问你的真实经历，把「我就是打杂」翻译成可被识别的 PM 能力。",
+                title: "输入真实经历",
+                desc: "上传或粘贴简历，先保留证书、教育、工作、实习和项目等硬背景。",
                 href: "/interview",
               },
               {
                 num: "02",
                 icon: "◈",
-                title: "能力地图",
-                desc: "生成你专属的能力档案，标注绿色王牌与红色缺口，知道自己站在哪里。",
+                title: "主动对齐访谈",
+                desc: "Agent 继续追问场景、行动和结果，把被忽略的经历翻译成能力档案。",
                 href: "/map",
               },
               {
                 num: "03",
                 icon: "◍",
-                title: "JD 匹配分析",
-                desc: "贴入目标 JD，Agent 对比你的档案，输出匹配分、能力缺口和具体行动建议。",
+                title: "JD 拆解与匹配",
+                desc: "粘贴 JD 或上传截图 OCR，逐条区分直接匹配、可迁移、邻近能力和真实缺口。",
                 href: "/analyze",
               },
               {
                 num: "04",
                 icon: "◎",
-                title: "定制简历",
-                desc: "一键生成针对该 JD 的简历，生成后可用自然语言继续迭代修改。",
+                title: "定制简历交付",
+                desc: "从经历主库选择最相关内容，切换模板并导出网页、Word 或 A4 PDF。",
                 href: "/resume",
+              },
+              {
+                num: "05",
+                icon: "◇",
+                title: "面试与投递准备",
+                desc: "生成 STAR 面试回答和针对 JD 的邮件草稿，最后由你确认并发送。",
+                href: "/interview-prep",
               },
             ].map((item) => (
               <Link key={item.num} href={item.href} className="block">
                 <div
-                  className="rounded-2xl p-8 flex flex-col gap-6 h-full transition-opacity hover:opacity-90"
+                  className="rounded-2xl p-6 flex flex-col gap-5 h-full transition-opacity hover:opacity-90"
                   style={{ backgroundColor: "#1a2744" }}
                 >
                   <div className="flex items-center justify-between">
@@ -252,7 +259,7 @@ export default function Home() {
                   </div>
                   <div className="flex-1">
                     <h3
-                      className="text-white text-xl font-semibold mb-3"
+                      className="text-white text-lg font-semibold mb-3"
                       style={{ fontFamily: "var(--font-serif)" }}
                     >
                       {item.title}
@@ -292,22 +299,22 @@ export default function Home() {
                 status: "已上线",
                 color: "#22c55e",
                 icon: "◉",
-                title: "对齐访谈 + 简历生成",
-                desc: "上传简历 → Agent 深度访谈 → 能力档案 → JD 匹配分析 → 定制简历 + 一键导出 Word。",
+                title: "事实档案与主动访谈",
+                desc: "保留硬背景和时间线，通过主动追问把零散经历沉淀为可复用的能力资产。",
               },
               {
                 status: "已上线",
                 color: "#22c55e",
                 icon: "◈",
-                title: "一键投递",
-                desc: "Agent 从 JD 中识别投递邮箱，自动生成邮件草稿，人工预览确认后一键发送。在 JD 匹配分析页完成分析后即可使用。",
+                title: "JD 到求职材料闭环",
+                desc: "JD OCR、逐条证据匹配、四种简历模板、A4 PDF、面试回答和可编辑邮件草稿已经串联。",
               },
               {
-                status: "规划中",
-                color: "#6b7a99",
+                status: "下一步",
+                color: "#2563eb",
                 icon: "◎",
-                title: "每日招聘日报",
-                desc: "根据你的能力档案和偏好，Agent 每日主动推送匹配岗位摘要，直接进入 JD 分析流程。",
+                title: "持续更新的职业资产",
+                desc: "支持多岗位比较、事实证据确认和面试反馈回写，让能力档案随着每次求职持续变得更准确。",
               },
             ].map((item) => (
               <div
@@ -358,7 +365,7 @@ export default function Home() {
           开始访谈
         </Link>
         <p className="mt-4 text-blue-300 text-sm">
-          约 10 分钟 · 数据存在你自己手里
+          约 10 分钟 · 档案默认保存在本浏览器
         </p>
       </section>
 

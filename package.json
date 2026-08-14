@@ -8,15 +8,16 @@
     "start": "next start"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.115.0",
+    "@sparticuz/chromium-min": "149.0.0",
     "@upstash/redis": "^1.38.2",
-    "html-to-docx": "^1.8.0",
+    "docx": "^9.7.1",
     "mammoth": "^1.12.0",
     "next": "16.3.0",
     "openai": "^4.78.1",
-    "pdf-parse": "^2.4.5",
+    "puppeteer-core": "25.1.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
