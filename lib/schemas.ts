@@ -197,14 +197,21 @@ export const emailDraftSchema = z.object({
 });
 
 export const interviewResponseSchema = z.object({
-  done: z.boolean(),
+  done: z.boolean().default(false),
   reply: shortText(2000),
-  profile: z.string().trim().max(40_000),
+  // The profile is only meaningful on the final turn. Some compatible models
+  // omit it during ordinary interview turns, so treat omission as an empty draft.
+  profile: z.string().trim().max(40_000).default(""),
   careerHypotheses: z.array(z.object({
     role: shortText(160),
     why: shortText(600),
-    evidence: z.array(shortText(500)).max(4),
-    toValidate: shortText(500),
+    // Models occasionally return one evidence sentence instead of an array.
+    // Normalising it here avoids turning a useful answer into a failed request.
+    evidence: z.preprocess(
+      (value) => typeof value === "string" ? [value] : value,
+      z.array(shortText(500)).max(4)
+    ).default([]),
+    toValidate: shortText(500).default("待后续访谈验证"),
   })).max(6).default([]),
 }).superRefine((value, context) => {
   if (value.done && value.profile.length < 50) {

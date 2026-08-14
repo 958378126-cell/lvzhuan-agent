@@ -4,6 +4,8 @@ import { DEMO_PROFILE } from "@/lib/demo-data";
 import { interviewResponseSchema } from "@/lib/schemas";
 import { attachOriginalResume } from "@/lib/profile-facts";
 
+export const maxDuration = 60;
+
 interface Message {
   role: "assistant" | "user";
   text: string;
@@ -71,6 +73,8 @@ const SYSTEM = `你是一名专业的职业转型顾问，专门帮助法律背�
 注意：初步岗位假设、兴趣和正在学习的内容必须单独标记为“待验证/用户自述”，不能伪装成教育、证书或工作事实。`;
 
 export async function POST(req: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const startedAt = Date.now();
   const { messages, resumeContext, demo }: { messages: Message[]; resumeContext?: string; demo?: boolean } = await req.json();
   if (demo) {
     return NextResponse.json({
@@ -100,19 +104,52 @@ export async function POST(req: NextRequest) {
     }));
 
   try {
+    console.info("interview.request", {
+      requestId,
+      messageCount: chatMessages.length,
+      resumeLength: resumeContext?.length ?? 0,
+    });
     const response = await requestValidatedJSON({
       schema: interviewResponseSchema,
       maxTokens: 2048,
       messages: [{ role: "system", content: system }, ...chatMessages],
     });
+    const profile = response.profile ?? "";
+    const careerHypotheses = response.careerHypotheses ?? [];
+    console.info("interview.success", {
+      requestId,
+      elapsedMs: Date.now() - startedAt,
+      done: response.done,
+      replyLength: response.reply.length,
+      hypothesisCount: careerHypotheses.length,
+    });
     return NextResponse.json({
       ...response,
+      careerHypotheses,
       profile: response.done
-        ? attachOriginalResume(response.profile, resumeContext)
-        : response.profile,
+        ? attachOriginalResume(profile, resumeContext)
+        : profile,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 502 });
+    console.error("interview.failure", {
+      requestId,
+      elapsedMs: Date.now() - startedAt,
+      error: msg,
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+
+    let publicMessage = "AI 暂时没有完成本轮访谈，请重试一次。";
+    if (/校验|JSON|parse/i.test(msg)) {
+      publicMessage = "AI 本轮回答格式不完整，请重试一次；你的简历和回答仍已保留。";
+    } else if (/timeout|timed out|aborted/i.test(msg)) {
+      publicMessage = "AI 本轮响应超时，请重试一次；你的简历和回答仍已保留。";
+    } else if (/401|authentication|api key/i.test(msg)) {
+      publicMessage = "AI 服务认证失败，请检查部署环境中的 AI_API_KEY。";
+    } else if (/429|rate limit|quota|balance/i.test(msg)) {
+      publicMessage = "AI 服务当前限流或余额不足，请稍后重试。";
+    }
+
+    return NextResponse.json({ error: publicMessage, requestId }, { status: 502 });
   }
 }
