@@ -67,6 +67,19 @@ export function sourceDateRangeForEntry(
     .filter((value): value is string => Boolean(value))
     .map((value) => value.trim())
     .filter((value) => value.length >= 2 && value !== "—" && value !== "未提供");
+
+  // 首选同一行（或紧邻下一行）的明确绑定，例如：
+  // “福建师范大学 · 经济法学 · 硕士（2021.09-2024.06）”。
+  // 这一步优先于全文最近距离，避免连续教育经历互相串日期。
+  const sourceLines = source.split(/\r?\n|[。；;]/).map(cleanLine).filter(Boolean);
+  for (let index = 0; index < sourceLines.length; index += 1) {
+    const context = [sourceLines[index], sourceLines[index + 1] ?? ""].join(" ");
+    const normalizedContext = normalize(context);
+    if (!labels.some((label) => normalizedContext.includes(normalize(label)))) continue;
+    const range = extractDateRanges(context)[0];
+    if (range) return range;
+  }
+
   const positions: number[] = [];
   for (const label of labels) {
     let from = 0;
