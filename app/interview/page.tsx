@@ -132,8 +132,11 @@ export default function InterviewPage() {
       } else {
         setMessages((m) => [...m, { role: "assistant", text: data.reply, careerHypotheses: data.careerHypotheses }]);
       }
-    } catch {
-      setMessages((m) => [...m, { role: "assistant", text: "网络出错了，请重试一下。" }]);
+    } catch (error: unknown) {
+      const message = error instanceof Error
+        ? error.message
+        : "访谈暂时失败，请重试一下。";
+      setMessages((m) => [...m, { role: "assistant", text: message }]);
     } finally {
       setLoading(false);
       textareaRef.current?.focus();
