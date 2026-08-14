@@ -3,9 +3,15 @@ import "server-only";
 import type { ResumeData } from "./schemas";
 
 // Keep date handling conservative: source-backed dates win, otherwise use “—”.
-const DATE_PART = String.raw`(?:19|20)\d{2}(?:\s*[./年月-]\s*(?:0?[1-9]|1[0-2])\s*月?)?`;
+const YEAR = String.raw`(?:19|20)\d{2}`;
+const MONTH_NUMBER = String.raw`(?:0?[1-9]|1[0-2])`;
+// Keep the range separator (`-`) out of the ordinary date token. Otherwise a
+// greedy token can consume the hyphen between 2021.09 and 2024.06 and the
+// education timeline becomes impossible to bind correctly.
+const DATE_PART = String.raw`(?:${YEAR}(?:\s*[./]\s*${MONTH_NUMBER}|\s*年\s*${MONTH_NUMBER}\s*月?)?)`;
+const HYPHEN_DATE_PART = String.raw`(?:${YEAR}\s*-\s*${MONTH_NUMBER})`;
 const DATE_RANGE_PATTERN = new RegExp(
-  String.raw`(?:${DATE_PART}\s*(?:至|到|—|–|-|~|～)\s*(?:${DATE_PART}|至今|现在)|${DATE_PART}\s*(?:至今|现在))`,
+  String.raw`(?:${HYPHEN_DATE_PART}\s*(?:至|到|—|–|-|~|～)\s*(?:${HYPHEN_DATE_PART}|${DATE_PART}|至今|现在)|${DATE_PART}\s*(?:至|到|—|–|-|~|～)\s*(?:${DATE_PART}|${HYPHEN_DATE_PART}|至今|现在)|${DATE_PART}\s*(?:至今|现在)|${HYPHEN_DATE_PART}\s*(?:至今|现在))`,
   "gi",
 );
 const DATE_TOKEN_PATTERN = /(?:19|20)\d{2}/g;
