@@ -4,10 +4,12 @@ import { DEMO_ANALYSIS } from "@/lib/demo-data";
 import { analysisSchema, jdDecodeSchema } from "@/lib/schemas";
 import { buildFactInventory } from "@/lib/fact-inventory";
 import { calculateDeterministicScore } from "@/lib/match-score";
+import { LEGAL_CAPABILITY_PROMPT } from "@/lib/legal-capability-taxonomy";
 
 const decodePrompt = `你是资深招聘经理，先把 JD 从招聘话术解码为可验证的招聘需求。不要分析候选人，不要编公司信息。识别岗位、级别、职责、Must Have、Nice to Have、Hidden Signals，以及你对含糊表述的假设。中文输出，只返回合法 JSON：{"role":"岗位","level":"级别","responsibilities":["职责"],"mustHaves":["硬要求"],"niceToHaves":["加分项"],"hiddenSignals":["隐含信号"],"assumptions":["假设"]}`;
 
 const systemPrompt = `你是一名严谨的法律转型职业顾问。你将收到一份已经解码的 JD、个人档案和完整事实清单。
+${LEGAL_CAPABILITY_PROMPT}
 
 必须按以下顺序工作：
 1. 先做事实盘点：完整识别教育、全部资格证书、全部工作/实习/项目经历和技能。原始简历事实底座的优先级最高。
