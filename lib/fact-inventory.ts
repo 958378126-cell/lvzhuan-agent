@@ -4,7 +4,7 @@ import { requestValidatedJSON } from "./ai";
 import { factInventorySchema } from "./schemas";
 
 type Fact = {
-  category: "education" | "certification" | "work" | "internship" | "project" | "skill";
+  category: string;
   item: string;
   evidence: string;
 };
@@ -32,9 +32,9 @@ export async function buildFactInventory(profile: string, resumeContext?: string
       {
         role: "system",
         content: `你是简历事实审计员。完整提取输入中的所有硬事实，不做 JD 匹配，不评价，不改写，不合并不同经历。
-必须逐项覆盖：全部教育、全部资格证书/执照/考试成绩、全部工作经历、全部实习、全部项目以及明确技能。
+必须逐项覆盖：全部教育、全部资格证书/执照/考试成绩、全部工作经历、全部实习、全部项目、论文/出版物/奖项以及明确技能。
 尤其不能遗漏证券从业资格、基金从业资格、法律职业资格、律师证、英语四六级、PMP 等证书。
-每项保留原文证据。只输出 JSON：{"facts":[{"category":"education|certification|work|internship|project|skill","item":"事实项","evidence":"原文证据"}]}`,
+每项保留原文证据。category 优先使用 education、certification、work、internship、project、skill；论文或出版物可使用 publication，奖项可使用 award。只输出 JSON：{"facts":[{"category":"education|certification|work|internship|project|skill|publication|award","item":"事实项","evidence":"原文证据"}]}`,
       },
       { role: "user", content: source },
     ],
