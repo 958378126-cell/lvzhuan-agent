@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { DEMO_JD, DEMO_PROFILE } from "@/lib/demo-data";
 
@@ -60,6 +60,7 @@ export default function AnalyzePage() {
   const [copiedDraft, setCopiedDraft] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
+  const draftPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setProfile(localStorage.getItem(PROFILE_KEY) ?? "");
@@ -67,7 +68,14 @@ export default function AnalyzePage() {
     setResumeContext(localStorage.getItem(RESUME_CTX_KEY) ?? "");
   }, []);
 
+  useEffect(() => {
+    if (showDraft) {
+      window.setTimeout(() => draftPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    }
+  }, [showDraft]);
+
   async function draftEmail() {
+    setError("");
     setDraftLoading(true);
     setDraft(null);
     setShowDraft(true);
@@ -507,7 +515,7 @@ export default function AnalyzePage() {
 
               {/* Email draft */}
               {showDraft && (
-                <div className="rounded-2xl bg-white p-6 shadow-sm border-2" style={{ borderColor: "#2563eb" }}>
+                <div ref={draftPanelRef} className="rounded-2xl bg-white p-6 shadow-sm border-2" style={{ borderColor: "#2563eb" }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#2563eb" }}>
                       投递邮件草稿
