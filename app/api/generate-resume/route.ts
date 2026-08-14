@@ -27,10 +27,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "输入内容过长，请精简后重试" }, { status: 413 });
     }
 
-    const dateSource = typeof resumeContext === "string" && resumeContext.trim() ? resumeContext : profile;
+    // 用户在能力档案中手动修正的时间也必须参与校验；不能因为存在一份
+    // 旧的 resumeContext，就让旧日期覆盖用户刚确认过的教育/实习时间。
+    const dateSource = [profile, resumeContext]
+      .filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+      .join("\n\n");
     const source = [resumeContext, profile].filter((value): value is string => typeof value === "string" && Boolean(value.trim())).join("\n\n");
     const dateEvidence = buildDateEvidence(dateSource);
-    const facts = `能力档案：\n${profile}\n\n原始简历全文（最高优先级）：\n${resumeContext ?? ""}\n\n原始简历日期证据（只能使用这些时间，必须保留开始—结束）：\n${dateEvidence || "未提供明确日期"}`;
+    const facts = `能力档案（用户已确认的内容优先）：\n${profile}\n\n原始简历全文：\n${resumeContext ?? ""}\n\n合并日期证据（只能使用这些时间，必须保留开始—结束）：\n${dateEvidence || "未提供明确日期"}`;
     const userPrompt = instruction && previousResume
       ? `${facts}\n\n目标 JD：\n${jd}\n\n当前简历 JSON：\n${JSON.stringify(previousResume)}\n\n修改指令：${instruction}\n\n保留未涉及部分，输出完整简历 JSON。`
       : `${facts}\n\n目标 JD：\n${jd}\n\n生成简历 JSON。`;
