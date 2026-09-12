@@ -18,11 +18,12 @@ export default function AmbientField() {
 
     const vertex = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
     const fragment = `precision highp float;
-      uniform vec2 r;uniform float t;uniform vec2 m;
+      uniform vec2 r;uniform float t;uniform vec2 m;uniform float intro;
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
       float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
       float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.01;a*=.5;}return v;}
       void main(){
+        vec2 uv=gl_FragCoord.xy/r;
         vec2 p=(gl_FragCoord.xy-.5*r)/min(r.x,r.y);float tm=t*.035;p.x+=(m.x-.5)*.16;
         float n=fbm(p*1.15+vec2(tm*.5,-tm*.25));
         float ribbon=sin(p.x*1.8+p.y*.7+n*3.2+tm*2.0);
@@ -34,7 +35,13 @@ export default function AmbientField() {
         c+=vec3(.28,.09,.29)*smoothstep(.25,1.,ribbon)*.34;
         c+=vec3(.18,.36,.28)*glow*.48;c+=vec3(.55,.32,.14)*glow2*.20;c+=vec3(.025,.04,.055)*n;
         float vignette=1.-smoothstep(.28,1.2,length(p)*.56);c*=.72+.28*vignette;
-        gl_FragColor=vec4(pow(c,vec3(.92)),1.);
+        float yFromTop=1.-uv.y;
+        float edgeNoise=(noise(vec2(uv.x*5.2,tm*.7))-.5)*.105+sin(uv.x*10.5+tm*2.4)*.018;
+        float front=mix(-.16,1.16,smoothstep(0.,1.,intro));
+        float wash=1.-smoothstep(front-.075,front+.065,yFromTop+edgeNoise);
+        float waterline=exp(-pow((yFromTop+edgeNoise-front)*15.,2.))*(1.-smoothstep(.8,1.,intro));
+        c+=waterline*vec3(.035,.12,.10);
+        gl_FragColor=vec4(mix(vec3(.008,.009,.012),pow(c,vec3(.92)),wash),1.);
       }`;
 
     const compile = (type: number, source: string) => {
@@ -64,10 +71,12 @@ export default function AmbientField() {
     const resolution = gl.getUniformLocation(program, "r");
     const time = gl.getUniformLocation(program, "t");
     const pointer = gl.getUniformLocation(program, "m");
+    const introduction = gl.getUniformLocation(program, "intro");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let mouseX = 0.5;
     let mouseY = 0.5;
     let start = performance.now();
+    const introStart = start;
     let frame = 0;
 
     const resize = () => {
@@ -81,9 +90,12 @@ export default function AmbientField() {
       mouseY = 1 - event.clientY / window.innerHeight;
     };
     const draw = (now: number) => {
+      const elapsed = (now - start) / 1000;
+      const introElapsed = (now - introStart) / 1000;
       gl.uniform2f(resolution, canvas.width, canvas.height);
-      gl.uniform1f(time, reduced ? 0 : (now - start) / 1000);
+      gl.uniform1f(time, reduced ? 0 : elapsed);
       gl.uniform2f(pointer, mouseX, mouseY);
+      gl.uniform1f(introduction, reduced ? 1 : Math.min(1, Math.max(0, (introElapsed - 0.62) / 2.25)));
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       if (!reduced) frame = requestAnimationFrame(draw);
     };

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import AmbientField from "./ambient-field";
 
 const steps = [
@@ -14,9 +15,27 @@ const steps = [
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setEntered(true);
+      return;
+    }
+
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setEntered(true));
+    });
+
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+    };
+  }, []);
 
   return (
-    <div className="app-frame">
+    <div className={`app-frame ${entered ? "is-entered" : "is-entering"}`}>
       <AmbientField />
       <div className="field-wash" aria-hidden="true" />
       <svg className="field-grain" aria-hidden="true">

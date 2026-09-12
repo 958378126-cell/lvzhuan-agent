@@ -36,10 +36,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .font-serif { font-family: var(--font-editorial); }
 
 .app-frame { position: relative; isolation: isolate; min-height: 100svh; background: var(--ground); }
-.ambient-field { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; background: radial-gradient(circle at 48% 45%, #16261f 0, #0c1116 38%, var(--ground) 78%); }
+.ambient-field { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; background: var(--ground); }
 .field-wash { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at center, transparent 0, rgba(8,10,14,.12) 42%, rgba(8,10,14,.82) 100%); }
-.field-grain { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; opacity: .08; mix-blend-mode: screen; pointer-events: none; }
-.route-canvas { position: relative; z-index: 3; min-width: 0; }
+.field-grain { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; opacity: 0; mix-blend-mode: screen; pointer-events: none; }
+.route-canvas { position: relative; z-index: 3; min-width: 0; opacity: 0; transform: translateY(12px); }
 
 .studio-header {
   position: sticky; top: 0; z-index: 40; min-height: 70px;
@@ -147,11 +147,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .map-workspace .rounded-full { border-radius: 50% !important; }
 .prep-workspace main { padding-top: 34px; padding-bottom: 76px; }
 
-.reveal { opacity: 0; transform: translateY(10px); animation: rise .9s cubic-bezier(.2,.75,.2,1) forwards; }
-.d2 { animation-delay: .12s; }
-.d3 { animation-delay: .22s; }
-.d4 { animation-delay: .32s; }
-@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+.reveal { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+.app-frame.is-entered .route-canvas { animation: route-in 1.35s .34s cubic-bezier(.16,.78,.22,1) forwards; }
+.app-frame.is-entered .field-grain { animation: grain-in 1.8s .72s ease-out forwards; }
+.app-frame.is-entered .reveal { animation: rise 1.55s cubic-bezier(.16,.78,.22,1) forwards; animation-delay: var(--reveal-delay, .82s); }
+.studio-header.reveal { --reveal-delay: .9s; }
+.d2 { --reveal-delay: .28s; }
+.d3 { --reveal-delay: 1.18s; }
+.d4 { --reveal-delay: 2.55s; }
+@keyframes route-in { to { opacity: 1; transform: translateY(0); } }
+@keyframes grain-in { to { opacity: .08; } }
+@keyframes rise { to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 @keyframes pulse { 0%,100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.35); } }
 
 @media (min-width: 1024px) {
@@ -174,7 +180,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .workflow-link span { display: none; }
   .dark-home { min-height: calc(100svh - 64px); padding: 0 20px max(22px,env(safe-area-inset-bottom)); }
   .dark-hero { gap: 64px; padding: 58px 0 48px; }
-  .hero-copy h1 { font-size: clamp(58px, 18vw, 88px); }
+  .hero-copy h1 { font-size: clamp(56px, 15vw, 78px); }
   .hero-statement { margin-top: 34px; font-size: 16px; }
   .case-row { grid-template-columns: 32px 56px 1fr 16px; gap: 8px; }
   .case-row small { font-size: 11px; }
@@ -190,4 +196,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .route-canvas, .reveal { opacity: 1 !important; transform: none !important; filter: none !important; animation-delay: 0s !important; }
+  .field-grain { opacity: .08 !important; animation-delay: 0s !important; }
 }
