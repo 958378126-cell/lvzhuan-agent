@@ -208,22 +208,20 @@ export default function InterviewPage() {
 
   if (step === "upload") {
     return (
-      <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-        <nav className="flex items-center justify-between px-10 py-5" style={{ backgroundColor: "#1a2744" }}>
-          <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">◎ 律转</Link>
-          <span className="text-blue-300 text-sm">对齐访谈</span>
-        </nav>
+      <div className="studio-workspace interview-upload">
+        <div className="workspace-masthead compact">
+          <div><span className="folio">01 / INTERVIEW</span><h1>先把原稿<br />交给我。</h1></div>
+          <p>我会从你的具体经历开始问，不让你再做一次漫长的自我介绍。</p>
+        </div>
 
-        <div className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="flex-1 flex items-center justify-center px-6 pb-20">
           <div className="w-full max-w-xl flex flex-col gap-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
                 <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>第一步：上传你的简历</span>
               </div>
-              <p className="text-sm text-gray-500 leading-7">
-                Agent 会先读懂你的简历，然后针对你的具体经历提问——不再从头问起，直接挖掘最有价值的部分。
-              </p>
+              <p className="text-sm text-gray-500 leading-7">Word 或文字都可以。上传后仍由你确认事实。</p>
             </div>
 
             {/* Drop zone */}
@@ -291,25 +289,20 @@ export default function InterviewPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-      <nav className="flex items-center justify-between px-10 py-5 flex-none" style={{ backgroundColor: "#1a2744" }}>
-        <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">◎ 律转</Link>
-        <div className="flex items-center gap-6">
-          <span className="text-blue-300 text-sm">对齐访谈</span>
-          <button onClick={restart} className="text-blue-400 text-xs hover:text-white transition-colors">重新开始</button>
-        </div>
-      </nav>
+    <div className="studio-workspace interview-room">
+      <div className="workspace-subbar">
+        <span><b>01</b> 对齐访谈 · 正在从叙述中提取证据</span>
+        <button onClick={restart}>重新开始</button>
+      </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-3xl mx-auto flex flex-col gap-5">
-          <div className="rounded-2xl p-6 mb-2" style={{ backgroundColor: "#1a2744" }}>
+          <div className="agent-note rounded-2xl p-6 mb-2">
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-5 bg-blue-400" />
               <span className="text-blue-300 text-xs font-semibold tracking-widest uppercase">对齐访谈</span>
             </div>
-            <p className="text-blue-100 text-sm leading-7">
-              Agent 已读取你的简历，会针对你的具体经历深挖。答得笼统，会追问到具体场景和结果。
-            </p>
+            <p className="text-sm leading-7">已读取底稿。接下来只追问场景、行动和结果；含糊的地方会标成待确认。</p>
           </div>
 
           {messages.map((m, i) => (

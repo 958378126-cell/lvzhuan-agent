@@ -206,18 +206,13 @@ export default function AnalyzePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-      <nav
-        className="flex items-center justify-between px-10 py-5"
-        style={{ backgroundColor: "#1a2744" }}
-      >
-        <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">
-          ◎ 律转
-        </Link>
-        <span className="text-blue-300 text-sm">JD 匹配分析</span>
-      </nav>
+    <div className="studio-workspace analyze-workspace">
+      <div className="workspace-masthead">
+        <div><span className="folio">03 / MATCH PROOF</span><h1>逐条对照，<br />不只给分。</h1></div>
+        <p>左边是事实底稿与岗位原文，右边是判断。每个“匹配”都应当找得到证据。</p>
+      </div>
 
-      <div className="flex flex-1 flex-col lg:flex-row gap-6 p-4 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
+      <div className="workspace-spread flex flex-1 flex-col lg:flex-row gap-6 p-4 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
         {/* Left: inputs */}
         <div className="flex flex-col gap-6 w-full lg:w-96 flex-none min-w-0">
           <button
@@ -597,18 +592,10 @@ export default function AnalyzePage() {
               )}
             </>
           ) : (
-            <div
-              className="flex-1 rounded-2xl flex flex-col items-center justify-center text-center p-12"
-              style={{ backgroundColor: "#1a2744" }}
-            >
-              <span className="text-blue-300 text-4xl mb-6">◎</span>
-              <p className="text-2xl font-bold text-white mb-3" style={{ fontFamily: "var(--font-serif)" }}>
-                分析 JD 匹配度
-              </p>
-              <p className="text-blue-200 text-sm leading-7 max-w-xs">
-                粘入你的档案和目标 JD，Agent 会对比两者，
-                告诉你哪里打、哪里补、用什么关键词包装自己。
-              </p>
+            <div className="empty-proof flex-1 rounded-2xl flex flex-col items-center justify-center text-center p-12">
+              <span className="empty-proof-index">PROOF / 03</span>
+              <p className="text-2xl font-bold mb-3" style={{ fontFamily: "var(--font-serif)" }}>等待对稿</p>
+              <p className="text-sm leading-7 max-w-xs">放入能力档案和目标 JD，判断会在这里逐条展开。</p>
             </div>
           )}
         </div>

@@ -58,8 +58,7 @@ export default function MapPage() {
 
   if (raw === null) {
     return (
-      <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-        <Nav />
+      <div className="studio-workspace">
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse text-gray-400 text-sm">加载中…</div>
         </div>
@@ -69,8 +68,7 @@ export default function MapPage() {
 
   if (!raw) {
     return (
-      <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-        <Nav />
+      <div className="studio-workspace">
         <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 text-center">
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl"
@@ -99,8 +97,12 @@ export default function MapPage() {
   const p = parseProfile(raw);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-      <Nav />
+    <div className="studio-workspace map-workspace">
+
+      <div className="workspace-masthead">
+        <div><span className="folio">02 / FACT FILE</span><h1>你的经历，<br />现在有索引了。</h1></div>
+        <p>能力不是标签。每一项都应回到一段经历、一项行动或一个能够核验的结果。</p>
+      </div>
 
       <div className="max-w-4xl mx-auto w-full px-6 py-10 flex flex-col gap-6">
         {/* Header */}
@@ -235,19 +237,5 @@ export default function MapPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Nav() {
-  return (
-    <nav
-      className="flex items-center justify-between px-10 py-5 flex-none"
-      style={{ backgroundColor: "#1a2744" }}
-    >
-      <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">
-        ◎ 律转
-      </Link>
-      <span className="text-blue-300 text-sm">能力地图</span>
-    </nav>
   );
 }
