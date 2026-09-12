@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import AppChrome from "./components/app-chrome";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "律转 · 把你的法律经历翻译成 legaltech 价值",
-  description: "一个帮法律人转型 legaltech / PM 的求职陪跑 Agent",
+  title: "律转 · 把法律经历翻译成职业价值",
+  description: "面向法律人转型的职业翻译 Agent。用事实建立能力档案，匹配岗位并完成简历与面试准备。",
 };
 
 export default function RootLayout({
@@ -27,7 +28,9 @@ export default function RootLayout({
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full">
+        <AppChrome>{children}</AppChrome>
+      </body>
     </html>
   );
 }
