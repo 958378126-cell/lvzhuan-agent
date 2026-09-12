@@ -51,8 +51,6 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
           <strong>律转</strong>
         </Link>
 
-        <span className="header-whisper">把经历译成可被判断的价值</span>
-
         <nav className="workflow-nav" aria-label="求职工作流">
           {steps.map((step) => {
             const active = pathname === step.href;
