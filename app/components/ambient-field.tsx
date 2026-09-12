@@ -23,17 +23,17 @@ export default function AmbientField() {
       float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
       float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.01;a*=.5;}return v;}
       void main(){
-        vec2 p=(gl_FragCoord.xy-.5*r)/min(r.x,r.y);float tm=t*.012;p.x+=(m.x-.5)*.045;
+        vec2 p=(gl_FragCoord.xy-.5*r)/min(r.x,r.y);float tm=t*.035;p.x+=(m.x-.5)*.16;
         float n=fbm(p*1.15+vec2(tm*.5,-tm*.25));
         float ribbon=sin(p.x*1.8+p.y*.7+n*3.2+tm*2.0);
         float aurora=smoothstep(.35,.98,.5+.5*sin(p.y*2.4-p.x*.9+n*2.0+tm));
         float glow=exp(-2.4*length(p-vec2(-.12+sin(tm)*.12,.08)));
         float glow2=exp(-3.0*length(p-vec2(.28,-.18)));
         vec3 c=vec3(.025,.035,.047);
-        c+=vec3(.18,.12,.33)*smoothstep(.3,.95,aurora)*(.12+.12*n);
-        c+=vec3(.28,.09,.29)*smoothstep(.25,1.,ribbon)*.055;
-        c+=vec3(.18,.36,.28)*glow*.13;c+=vec3(.55,.32,.14)*glow2*.045;c+=vec3(.025,.04,.055)*n*.18;
-        float vignette=1.-smoothstep(.28,1.2,length(p)*.56);c*=.58+.18*vignette;
+        c+=vec3(.18,.12,.33)*smoothstep(.3,.95,aurora)*(.45+.55*n);
+        c+=vec3(.28,.09,.29)*smoothstep(.25,1.,ribbon)*.34;
+        c+=vec3(.18,.36,.28)*glow*.48;c+=vec3(.55,.32,.14)*glow2*.20;c+=vec3(.025,.04,.055)*n;
+        float vignette=1.-smoothstep(.28,1.2,length(p)*.56);c*=.72+.28*vignette;
         gl_FragColor=vec4(pow(c,vec3(.92)),1.);
       }`;
 
@@ -65,7 +65,6 @@ export default function AmbientField() {
     const time = gl.getUniformLocation(program, "t");
     const pointer = gl.getUniformLocation(program, "m");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const staticField = reduced || window.matchMedia("(max-width: 720px)").matches;
     let mouseX = 0.5;
     let mouseY = 0.5;
     let start = performance.now();
@@ -83,14 +82,14 @@ export default function AmbientField() {
     };
     const draw = (now: number) => {
       gl.uniform2f(resolution, canvas.width, canvas.height);
-      gl.uniform1f(time, staticField ? 0 : (now - start) / 1000);
+      gl.uniform1f(time, reduced ? 0 : (now - start) / 1000);
       gl.uniform2f(pointer, mouseX, mouseY);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
-      if (!staticField) frame = requestAnimationFrame(draw);
+      if (!reduced) frame = requestAnimationFrame(draw);
     };
     const visibility = () => {
       cancelAnimationFrame(frame);
-      if (!document.hidden && !staticField) {
+      if (!document.hidden && !reduced) {
         start = performance.now();
         frame = requestAnimationFrame(draw);
       }

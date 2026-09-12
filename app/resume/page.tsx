@@ -173,13 +173,13 @@ export default function ResumePage() {
   return (
     <div className="studio-workspace resume-workspace">
       <div className="workspace-masthead">
-        <div><span className="folio">04 / 简历</span><h1>为这份 JD，排一版简历。</h1></div>
-        <p>只选择这次投递需要的事实。</p>
+        <div><span className="folio">04 / FINAL COPY</span><h1>把证据排成<br />一份好简历。</h1></div>
+        <p>底稿不变，只为目标岗位选择、排序和翻译。每次改写都保留事实来源。</p>
       </div>
 
       <div className="workspace-spread flex flex-1 flex-col lg:flex-row gap-6 p-4 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
         {/* Left: inputs */}
-        <div className="task-panel flex flex-col gap-0 w-full lg:w-96 flex-none min-w-0">
+        <div className="flex flex-col gap-6 w-full lg:w-96 flex-none min-w-0">
           <button
             onClick={loadDemo}
             className="w-full h-11 rounded-xl border text-sm font-semibold bg-white"
@@ -206,9 +206,9 @@ export default function ResumePage() {
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3"><span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} /><span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>选择简历风格</span></div>
-            <p className="text-xs text-gray-400 mb-3 leading-5">模板不改变事实内容。</p>
-            <div className="resume-template-list">
-              {RESUME_TEMPLATES.map((item) => <button key={item.id} type="button" onClick={() => renderTemplate(item.id)} className={`resume-template ${templateId === item.id ? "is-active" : ""}`}><div className="flex justify-between gap-2"><span className="resume-template-name">{item.name}</span><span className="resume-template-ats">ATS {item.ats}</span></div><div className="resume-template-description">{item.description}</div></button>)}
+            <p className="text-xs text-gray-400 mb-3 leading-5">同一份事实档案换模板，不会丢失经历、证书或日期。</p>
+            <div className="grid grid-cols-1 gap-2">
+              {RESUME_TEMPLATES.map((item) => <button key={item.id} type="button" onClick={() => renderTemplate(item.id)} className="text-left rounded-xl border p-3 transition-colors" style={{ borderColor: templateId === item.id ? "#2563eb" : "#e5e7eb", backgroundColor: templateId === item.id ? "#eff6ff" : "#fff" }}><div className="flex justify-between gap-2"><span className="text-sm font-semibold text-gray-800">{item.name}</span><span className="text-xs text-gray-400">ATS {item.ats}</span></div><div className="text-xs text-gray-500 mt-1">{item.description}</div></button>)}
             </div>
           </div>
 
@@ -219,7 +219,9 @@ export default function ResumePage() {
                 能力档案
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-3 leading-5">访谈结果会自动带入。</p>
+            <p className="text-xs text-gray-400 mb-3 leading-5">
+              粘贴你的能力档案（访谈生成的内容）。首次填写后会自动保存。
+            </p>
             <textarea
               className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
               rows={9}
@@ -236,7 +238,9 @@ export default function ResumePage() {
                 目标 JD
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-3 leading-5">粘贴目标岗位全文。</p>
+            <p className="text-xs text-gray-400 mb-3 leading-5">
+              把你看中的那条岗位描述完整贴进来。
+            </p>
             <textarea
               className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
               rows={9}

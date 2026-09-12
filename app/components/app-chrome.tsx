@@ -18,12 +18,21 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-frame">
       <AmbientField />
+      <div className="field-wash" aria-hidden="true" />
+      <svg className="field-grain" aria-hidden="true">
+        <filter id="grain-filter">
+          <feTurbulence type="fractalNoise" baseFrequency=".82" numOctaves="4" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain-filter)" />
+      </svg>
 
       <header className="studio-header reveal">
         <Link href="/" className="wordmark" aria-label="律转首页">
           <span className="signal-dot" aria-hidden="true" />
           <strong>律转</strong>
         </Link>
+
+        <span className="header-whisper">把经历译成可被判断的价值</span>
 
         <nav className="workflow-nav" aria-label="求职工作流">
           {steps.map((step) => {
