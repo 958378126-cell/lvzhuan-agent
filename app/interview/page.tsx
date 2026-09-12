@@ -210,20 +210,12 @@ export default function InterviewPage() {
     return (
       <div className="studio-workspace interview-upload">
         <div className="workspace-masthead compact">
-          <div><span className="folio">01 / INTERVIEW</span><h1>先把原稿<br />交给我。</h1></div>
-          <p>我会从你的具体经历开始问，不让你再做一次漫长的自我介绍。</p>
+          <div><span className="folio">01 / 访谈</span><h1>交给我一份原稿。</h1></div>
+          <p>从具体经历开始，不重做自我介绍。</p>
         </div>
 
         <div className="flex-1 flex items-center justify-center px-6 pb-20">
           <div className="w-full max-w-xl flex flex-col gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
-                <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>第一步：上传你的简历</span>
-              </div>
-              <p className="text-sm text-gray-500 leading-7">Word 或文字都可以。上传后仍由你确认事实。</p>
-            </div>
-
             {/* Drop zone */}
             <div
               className={`rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-4 py-14 px-8 text-center cursor-pointer transition-colors ${dragging ? "border-blue-400 bg-blue-50" : "border-gray-300 bg-white hover:border-blue-300"}`}
@@ -297,14 +289,6 @@ export default function InterviewPage() {
 
       <div className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-3xl mx-auto flex flex-col gap-5">
-          <div className="agent-note rounded-2xl p-6 mb-2">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="block h-px w-5 bg-blue-400" />
-              <span className="text-blue-300 text-xs font-semibold tracking-widest uppercase">对齐访谈</span>
-            </div>
-            <p className="text-sm leading-7">已读取底稿。接下来只追问场景、行动和结果；含糊的地方会标成待确认。</p>
-          </div>
-
           {messages.map((m, i) => (
             <div key={i} className="flex flex-col">
               <div className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
