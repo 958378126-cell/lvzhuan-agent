@@ -171,20 +171,15 @@ export default function ResumePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-      <nav
-        className="flex items-center justify-between px-10 py-5"
-        style={{ backgroundColor: "#1a2744" }}
-      >
-        <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">
-          ◎ 律转
-        </Link>
-        <span className="text-blue-300 text-sm">简历生成</span>
-      </nav>
+    <div className="studio-workspace resume-workspace">
+      <div className="workspace-masthead">
+        <div><span className="folio">04 / 简历</span><h1>为这份 JD，排一版简历。</h1></div>
+        <p>只选择这次投递需要的事实。</p>
+      </div>
 
-      <div className="flex flex-1 flex-col lg:flex-row gap-6 p-4 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
+      <div className="workspace-spread flex flex-1 flex-col lg:flex-row gap-6 p-4 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
         {/* Left: inputs */}
-        <div className="flex flex-col gap-6 w-full lg:w-96 flex-none min-w-0">
+        <div className="task-panel flex flex-col gap-0 w-full lg:w-96 flex-none min-w-0">
           <button
             onClick={loadDemo}
             className="w-full h-11 rounded-xl border text-sm font-semibold bg-white"
@@ -211,9 +206,9 @@ export default function ResumePage() {
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3"><span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} /><span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>选择简历风格</span></div>
-            <p className="text-xs text-gray-400 mb-3 leading-5">同一份事实档案换模板，不会丢失经历、证书或日期。</p>
-            <div className="grid grid-cols-1 gap-2">
-              {RESUME_TEMPLATES.map((item) => <button key={item.id} type="button" onClick={() => renderTemplate(item.id)} className="text-left rounded-xl border p-3 transition-colors" style={{ borderColor: templateId === item.id ? "#2563eb" : "#e5e7eb", backgroundColor: templateId === item.id ? "#eff6ff" : "#fff" }}><div className="flex justify-between gap-2"><span className="text-sm font-semibold text-gray-800">{item.name}</span><span className="text-xs text-gray-400">ATS {item.ats}</span></div><div className="text-xs text-gray-500 mt-1">{item.description}</div></button>)}
+            <p className="text-xs text-gray-400 mb-3 leading-5">模板不改变事实内容。</p>
+            <div className="resume-template-list">
+              {RESUME_TEMPLATES.map((item) => <button key={item.id} type="button" onClick={() => renderTemplate(item.id)} className={`resume-template ${templateId === item.id ? "is-active" : ""}`}><div className="flex justify-between gap-2"><span className="resume-template-name">{item.name}</span><span className="resume-template-ats">ATS {item.ats}</span></div><div className="resume-template-description">{item.description}</div></button>)}
             </div>
           </div>
 
@@ -224,9 +219,7 @@ export default function ResumePage() {
                 能力档案
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-3 leading-5">
-              粘贴你的能力档案（访谈生成的内容）。首次填写后会自动保存。
-            </p>
+            <p className="text-xs text-gray-400 mb-3 leading-5">访谈结果会自动带入。</p>
             <textarea
               className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
               rows={9}
@@ -243,9 +236,7 @@ export default function ResumePage() {
                 目标 JD
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-3 leading-5">
-              把你看中的那条岗位描述完整贴进来。
-            </p>
+            <p className="text-xs text-gray-400 mb-3 leading-5">粘贴目标岗位全文。</p>
             <textarea
               className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
               rows={9}
@@ -372,22 +363,15 @@ export default function ResumePage() {
               </div>
             </>
           ) : (
-            <div
-              className="flex-1 rounded-2xl flex flex-col items-center justify-center text-center p-12"
-              style={{ backgroundColor: "#1a2744" }}
-            >
-              <span className="text-blue-300 text-4xl mb-6">◎</span>
+            <div className="empty-proof flex-1 rounded-2xl flex flex-col items-center justify-center text-center p-12">
+              <span className="empty-proof-index">FINAL COPY / 04</span>
               <p
-                className="text-2xl font-bold text-white mb-3"
+                className="text-2xl font-bold mb-3"
                 style={{ fontFamily: "var(--font-serif)" }}
               >
-                填入档案和 JD
+                等待排版
               </p>
-              <p className="text-blue-200 text-sm leading-7 max-w-xs">
-                Agent 会从你的档案里挑出与这条 JD 最匹配的经历，
-                用招聘方听得懂的语言重新包装，生成一份可直接投递的简历。
-                生成后可以用自然语言继续调整。
-              </p>
+              <p className="text-sm leading-7 max-w-xs">放入档案和 JD，只选择这次投递真正需要的证据。</p>
             </div>
           )}
         </div>

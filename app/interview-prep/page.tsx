@@ -46,8 +46,11 @@ export default function InterviewPrepPage() {
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "回答生成失败，请重试"); } finally { setAnswerLoading(null); }
   }
 
-  return <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-    <nav className="flex items-center justify-between px-10 py-5" style={{ backgroundColor: "#1a2744" }}><Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">◎ 律转</Link><span className="text-blue-300 text-sm">面试准备</span></nav>
+  return <div className="studio-workspace prep-workspace">
+    <div className="workspace-masthead">
+      <div><span className="folio">05 / REHEARSAL</span><h1>让每个回答<br />都有出处。</h1></div>
+      <p>问题来自岗位，回答来自经历。缺失的事实会留白，不替你编造。</p>
+    </div>
     <main className="max-w-5xl mx-auto w-full p-4 sm:p-8 flex flex-col gap-5">
       <div className="flex gap-3 flex-wrap"><button onClick={loadDemo} className="rounded-xl border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-blue-600">加载离线演示数据</button><Link href="/analyze" className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">回到 JD 分析</Link><Link href="/resume" className="rounded-xl bg-[#1a2744] px-4 py-2 text-sm font-semibold text-white">去生成简历</Link></div>
       <section className="rounded-2xl bg-white p-6 shadow-sm"><div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#1a2744" }}>JD 驱动面试准备</div><p className="text-sm text-gray-500 leading-6">基于同一份目标 JD 和原始事实底座，预测问题并填好 STAR 框架。未知部分会标记为“待用户补充”，不会替你编答案。</p><button onClick={prepare} disabled={loading} className="mt-4 h-11 rounded-xl px-6 text-sm font-semibold text-white disabled:opacity-50" style={{ backgroundColor: "#2563eb" }}>{loading ? "生成中…" : "生成岗位面试准备"}</button>{error && <p className="mt-3 text-sm text-red-600">{error}</p>}</section>

@@ -17,9 +17,11 @@ const MESSAGES_KEY = "lvzhuan_interview_messages";
 const RESUME_CTX_KEY = "lvzhuan_resume_context";
 
 type Step = "upload" | "chat";
+type IntakeMode = "file" | "text";
 
 export default function InterviewPage() {
   const [step, setStep] = useState<Step>("upload");
+  const [intakeMode, setIntakeMode] = useState<IntakeMode>("file");
   const [resumeText, setResumeText] = useState("");
   const [pasteText, setPasteText] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -180,6 +182,7 @@ export default function InterviewPage() {
     setDone(false);
     setProfileId(null);
     setCloudError("");
+    setIntakeMode("file");
     setStep("upload");
   }
 
@@ -208,81 +211,74 @@ export default function InterviewPage() {
 
   if (step === "upload") {
     return (
-      <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-        <nav className="flex items-center justify-between px-10 py-5" style={{ backgroundColor: "#1a2744" }}>
-          <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">◎ 律转</Link>
-          <span className="text-blue-300 text-sm">对齐访谈</span>
-        </nav>
+      <div className="studio-workspace interview-upload">
+        <div className="workspace-masthead compact">
+          <div><span className="folio">01 / 访谈</span><h1>从一份原稿开始。</h1></div>
+          <p>上传简历，或直接粘贴。</p>
+        </div>
 
-        <div className="flex-1 flex items-center justify-center px-6 py-16">
-          <div className="w-full max-w-xl flex flex-col gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="block h-px w-6" style={{ backgroundColor: "#1a2744" }} />
-                <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#1a2744" }}>第一步：上传你的简历</span>
+        <div className="intake-stage">
+          <div className="intake-shell">
+            <div className="intake-modes" role="tablist" aria-label="选择简历输入方式">
+              <button type="button" role="tab" aria-selected={intakeMode === "file"} className={intakeMode === "file" ? "is-active" : ""} onClick={() => setIntakeMode("file")}>上传文件</button>
+              <button type="button" role="tab" aria-selected={intakeMode === "text"} className={intakeMode === "text" ? "is-active" : ""} onClick={() => setIntakeMode("text")}>粘贴文字</button>
+            </div>
+
+            {intakeMode === "file" ? (
+              <div
+                className={`intake-drop ${dragging ? "is-dragging" : ""}`}
+                role="button"
+                tabIndex={0}
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
+              >
+                <span className="intake-index">01</span>
+                <div>
+                  <p>把简历放在这里。</p>
+                  <span>{uploading ? "正在读取…" : "选择 Word 文件 ↗"}</span>
+                </div>
+                <small>.DOCX · 最大 5MB</small>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) parseFile(f); }}
+                />
               </div>
-              <p className="text-sm text-gray-500 leading-7">
-                Agent 会先读懂你的简历，然后针对你的具体经历提问——不再从头问起，直接挖掘最有价值的部分。
-              </p>
-            </div>
-
-            {/* Drop zone */}
-            <div
-              className={`rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-4 py-14 px-8 text-center cursor-pointer transition-colors ${dragging ? "border-blue-400 bg-blue-50" : "border-gray-300 bg-white hover:border-blue-300"}`}
-              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <span className="text-3xl" style={{ color: "#1a2744" }}>◎</span>
-              <div>
-                <p className="text-sm font-semibold" style={{ color: "#1a2744" }}>拖拽文件到这里，或点击上传</p>
-                <p className="text-xs text-gray-400 mt-1">支持 Word 文件（.docx，最大 5MB）</p>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) parseFile(f); }}
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400">或者</span>
-              <span className="flex-1 h-px bg-gray-200" />
-            </div>
-
-            {/* Paste fallback */}
-            <div className="rounded-2xl bg-white p-5 shadow-sm">
-              <p className="text-xs text-gray-400 mb-3">直接粘贴简历文字内容</p>
+            ) : (
+              <div className="intake-text">
+                <span className="intake-index">01</span>
               <textarea
-                className="w-full rounded-xl border border-gray-200 p-3 text-sm leading-6 resize-none focus:outline-none focus:border-blue-400 transition-colors"
-                rows={6}
-                placeholder="把简历内容粘贴到这里…"
+                  rows={8}
+                  placeholder="把简历原文粘贴到这里…"
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
               />
-            </div>
+                <button
+                  type="button"
+                  onClick={() => pasteText.trim().length > 50 && startInterview(pasteText.trim())}
+                  disabled={uploading || pasteText.trim().length < 50}
+                  className="intake-primary"
+                >
+                  {uploading ? "正在读取…" : "开始访谈 ↗"}
+                </button>
+              </div>
+            )}
 
             {uploadError && <p className="text-red-500 text-sm px-1">{uploadError}</p>}
 
             <button
-              onClick={() => pasteText.trim().length > 50 && startInterview(pasteText.trim())}
-              disabled={uploading || pasteText.trim().length < 50}
-              className="w-full h-12 rounded-xl text-white text-sm font-semibold transition-opacity disabled:opacity-40"
-              style={{ backgroundColor: "#1a2744" }}
-            >
-              {uploading ? "Agent 正在读取简历…" : "开始针对性访谈 →"}
-            </button>
-            <button
+              type="button"
               onClick={startDemo}
               disabled={uploading}
-              className="w-full h-12 rounded-xl border text-sm font-semibold bg-white disabled:opacity-40"
-              style={{ borderColor: "#2563eb", color: "#2563eb" }}
+              className="intake-demo"
             >
-              直接体验离线演示
+              没有简历？使用示例档案
             </button>
           </div>
         </div>
@@ -291,25 +287,20 @@ export default function InterviewPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#f4f5f7" }}>
-      <nav className="flex items-center justify-between px-10 py-5 flex-none" style={{ backgroundColor: "#1a2744" }}>
-        <Link href="/" className="text-white text-sm font-semibold tracking-widest uppercase">◎ 律转</Link>
-        <div className="flex items-center gap-6">
-          <span className="text-blue-300 text-sm">对齐访谈</span>
-          <button onClick={restart} className="text-blue-400 text-xs hover:text-white transition-colors">重新开始</button>
-        </div>
-      </nav>
+    <div className="studio-workspace interview-room">
+      <div className="workspace-subbar">
+        <span><b>01</b> 对齐访谈 · 正在从叙述中提取证据</span>
+        <button onClick={restart}>重新开始</button>
+      </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-3xl mx-auto flex flex-col gap-5">
-          <div className="rounded-2xl p-6 mb-2" style={{ backgroundColor: "#1a2744" }}>
+          <div className="agent-note rounded-2xl p-6 mb-2">
             <div className="flex items-center gap-2 mb-3">
               <span className="block h-px w-5 bg-blue-400" />
               <span className="text-blue-300 text-xs font-semibold tracking-widest uppercase">对齐访谈</span>
             </div>
-            <p className="text-blue-100 text-sm leading-7">
-              Agent 已读取你的简历，会针对你的具体经历深挖。答得笼统，会追问到具体场景和结果。
-            </p>
+            <p className="text-sm leading-7">已读取底稿。接下来只追问场景、行动和结果；含糊的地方会标成待确认。</p>
           </div>
 
           {messages.map((m, i) => (
